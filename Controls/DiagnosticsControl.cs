@@ -108,7 +108,7 @@ namespace PIInterfaceConfigUtility
         
         private async void UpdateTimer_Tick(object? sender, EventArgs e)
         {
-            if (runDiagnosticsButton.Enabled) // Only auto-update when not manually running
+            if (runDiagnosticsButton!.Enabled) // Only auto-update when not manually running
             {
                 await RunDiagnostics();
             }
@@ -215,7 +215,7 @@ namespace PIInterfaceConfigUtility
             AppendText("", Color.White);
             
             // Auto-scroll to bottom
-            diagnosticsTextBox.SelectionStart = diagnosticsTextBox.Text.Length;
+            diagnosticsTextBox!.SelectionStart = diagnosticsTextBox.Text.Length;
             diagnosticsTextBox.ScrollToCaret();
         }
         
@@ -227,7 +227,7 @@ namespace PIInterfaceConfigUtility
                 return;
             }
             
-            diagnosticsTextBox.SelectionStart = diagnosticsTextBox.TextLength;
+            diagnosticsTextBox!.SelectionStart = diagnosticsTextBox.TextLength;
             diagnosticsTextBox.SelectionLength = 0;
             diagnosticsTextBox.SelectionColor = color;
             diagnosticsTextBox.AppendText(text + Environment.NewLine);

@@ -174,6 +174,15 @@ namespace PIInterfaceConfigUtility.Models
         }
 
         /// <summary>
+        /// Legacy Enabled property for compatibility
+        /// </summary>
+        public bool Enabled
+        {
+            get => IsEnabled;
+            set => IsEnabled = value;
+        }
+
+        /// <summary>
         /// Whether the point is set up for archiving
         /// </summary>
         public bool IsArchiving
@@ -388,6 +397,8 @@ namespace PIInterfaceConfigUtility.Models
         Bad,
         Questionable,
         Substitute,
-        NoData
+        NoData,
+        ConfigError,
+        NotConnected
     }
 } 

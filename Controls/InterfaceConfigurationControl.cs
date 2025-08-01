@@ -214,12 +214,12 @@ namespace PIInterfaceConfigUtility
                 Interface = i
             }).ToList();
             
-            interfacesGrid.DataSource = interfaceList;
+            interfacesGrid!.DataSource = interfaceList;
         }
         
         private void InterfacesGrid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (e.ColumnIndex == interfacesGrid.Columns["Status"].Index && e.Value != null)
+            if (e.ColumnIndex == interfacesGrid!.Columns["Status"].Index && e.Value != null)
             {
                 var status = (InterfaceStatus)e.Value;
                 e.CellStyle.ForeColor = status switch
@@ -246,19 +246,19 @@ namespace PIInterfaceConfigUtility
         
         private void InterfacesGrid_SelectionChanged(object? sender, EventArgs e)
         {
-            if (interfacesGrid.SelectedRows.Count > 0)
+            if (interfacesGrid!.SelectedRows.Count > 0)
             {
                 var selectedRow = interfacesGrid.SelectedRows[0];
                 var piInterface = selectedRow.DataBoundItem?.GetType().GetProperty("Interface")?.GetValue(selectedRow.DataBoundItem) as PIInterface;
                 
                 if (piInterface != null)
                 {
-                    propertyGrid.SelectedObject = piInterface;
+                    propertyGrid!.SelectedObject = piInterface;
                 }
             }
             else
             {
-                propertyGrid.SelectedObject = null;
+                propertyGrid!.SelectedObject = null;
             }
         }
         
@@ -284,7 +284,7 @@ namespace PIInterfaceConfigUtility
         
         private void EditInterface_Click(object? sender, EventArgs e)
         {
-            if (interfacesGrid.SelectedRows.Count == 0)
+            if (interfacesGrid!.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select an interface to edit.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);

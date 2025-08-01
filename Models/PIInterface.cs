@@ -36,6 +36,9 @@ namespace PIInterfaceConfigUtility.Models
         public string ServiceName { get; set; } = string.Empty;
         public string ExecutablePath { get; set; } = string.Empty;
         public string ConfigurationPath { get; set; } = string.Empty;
+        public string ConfigFilePath { get; set; } = string.Empty;
+        public string LogFilePath { get; set; } = string.Empty;
+        public bool IsEnabled { get; set; } = true;
         public bool AutoStart { get; set; } = false;
         public int ScanInterval { get; set; } = 1000; // milliseconds
         public DateTime? LastStarted { get; set; }

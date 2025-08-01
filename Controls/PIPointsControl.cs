@@ -10,15 +10,15 @@ namespace PIInterfaceConfigUtility
     public partial class PIPointsControl : UserControl
     {
         private readonly PIServerManager piServerManager;
-        private ToolStrip toolStrip;
-        private DataGridView pointsGrid;
-        private GroupBox propertiesGroupBox;
-        private PropertyGrid propertyGrid;
-        private SplitContainer splitContainer;
-        private GroupBox searchGroupBox;
-        private TextBox searchTextBox;
-        private Button searchButton;
-        private Label connectionStatusLabel;
+        private ToolStrip? toolStrip;
+        private DataGridView? pointsGrid;
+        private GroupBox? propertiesGroupBox;
+        private PropertyGrid? propertyGrid;
+        private SplitContainer? splitContainer;
+        private GroupBox? searchGroupBox;
+        private TextBox? searchTextBox;
+        private Button? searchButton;
+        private Label? connectionStatusLabel;
         
         public PIPointsControl(PIServerManager serverManager)
         {
