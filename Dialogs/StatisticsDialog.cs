@@ -9,7 +9,7 @@ namespace PIInterfaceConfigUtility
     {
         private readonly string serviceName;
         private readonly Dictionary<string, object> statistics;
-        private ListView statisticsListView;
+        private ListView? statisticsListView;
         private Button refreshButton, closeButton;
         
         public StatisticsDialog(string serviceName, Dictionary<string, object> stats)

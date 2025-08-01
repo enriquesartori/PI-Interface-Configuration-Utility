@@ -22,6 +22,11 @@ namespace PIInterfaceConfigUtility.Models
         private string _interfaceName = "";
         private string _digitalStates = "";
         private int _id;
+        private string _interfaceId = "";
+        private bool _archive = true;
+        private double _minValue = double.MinValue;
+        private double _maxValue = double.MaxValue;
+        private long _updateCount = 0;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -331,6 +336,86 @@ namespace PIInterfaceConfigUtility.Models
             }
         }
 
+        /// <summary>
+        /// Interface ID this point belongs to
+        /// </summary>
+        public string InterfaceId
+        {
+            get => _interfaceId;
+            set
+            {
+                if (_interfaceId != value)
+                {
+                    _interfaceId = value;
+                    OnPropertyChanged(nameof(InterfaceId));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the point is archived (alias for IsArchiving)
+        /// </summary>
+        public bool Archive
+        {
+            get => _archive;
+            set
+            {
+                if (_archive != value)
+                {
+                    _archive = value;
+                    OnPropertyChanged(nameof(Archive));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Minimum valid value for the point
+        /// </summary>
+        public double MinValue
+        {
+            get => _minValue;
+            set
+            {
+                if (_minValue != value)
+                {
+                    _minValue = value;
+                    OnPropertyChanged(nameof(MinValue));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Maximum valid value for the point
+        /// </summary>
+        public double MaxValue
+        {
+            get => _maxValue;
+            set
+            {
+                if (_maxValue != value)
+                {
+                    _maxValue = value;
+                    OnPropertyChanged(nameof(MaxValue));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of times this point has been updated
+        /// </summary>
+        public long UpdateCount
+        {
+            get => _updateCount;
+            set
+            {
+                if (_updateCount != value)
+                {
+                    _updateCount = value;
+                    OnPropertyChanged(nameof(UpdateCount));
+                }
+            }
+        }
+
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -343,6 +428,7 @@ namespace PIInterfaceConfigUtility.Models
         {
             CurrentValue = value;
             LastUpdateTime = timestamp ?? DateTime.Now;
+            UpdateCount++;
         }
 
         /// <summary>

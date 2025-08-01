@@ -8,16 +8,16 @@ namespace PIInterfaceConfigUtility
 {
     public partial class MainForm : Form
     {
-        private MenuStrip menuStrip;
-        private ToolStrip toolStrip;
-        private StatusStrip statusStrip;
-        private TabControl mainTabControl;
-        private ToolStripStatusLabel statusLabel;
-        private ToolStripProgressBar progressBar;
+        private MenuStrip? menuStrip;
+        private ToolStrip? toolStrip;
+        private StatusStrip? statusStrip;
+        private TabControl? mainTabControl;
+        private ToolStripStatusLabel? statusLabel;
+        private ToolStripProgressBar? progressBar;
         
-        private PIServerManager piServerManager;
-        private InterfaceManager interfaceManager;
-        private ConfigurationManager configManager;
+        private PIServerManager? piServerManager;
+        private InterfaceManager? interfaceManager;
+        private ConfigurationManager? configManager;
         
         public MainForm()
         {
