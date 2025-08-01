@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using PIInterfaceConfigUtility.Models;
 using PIInterfaceConfigUtility.Services;
+using PIInterfaceConfigUtility.Dialogs;
 
 namespace PIInterfaceConfigUtility
 {
@@ -168,9 +169,9 @@ namespace PIInterfaceConfigUtility
             });
             
             // Custom formatting for status column
-            interfacesGrid.CellFormatting += InterfacesGrid_CellFormatting;
+            interfacesGrid!.CellFormatting += InterfacesGrid_CellFormatting;
             
-            splitContainer.Panel1.Controls.Add(interfacesGrid);
+            splitContainer!.Panel1.Controls.Add(interfacesGrid);
         }
         
         private void SetupPropertiesPanel()
@@ -189,13 +190,13 @@ namespace PIInterfaceConfigUtility
                 HelpVisible = true
             };
             
-            propertiesGroupBox.Controls.Add(propertyGrid);
-            splitContainer.Panel2.Controls.Add(propertiesGroupBox);
+            propertiesGroupBox!.Controls.Add(propertyGrid!);
+            splitContainer!.Panel2.Controls.Add(propertiesGroupBox);
         }
         
         private void SetupEventHandlers()
         {
-            interfacesGrid.SelectionChanged += InterfacesGrid_SelectionChanged;
+            interfacesGrid!.SelectionChanged += InterfacesGrid_SelectionChanged;
             interfaceManager.StatusChanged += InterfaceManager_StatusChanged;
             interfaceManager.InterfaceStatusChanged += InterfaceManager_InterfaceStatusChanged;
         }

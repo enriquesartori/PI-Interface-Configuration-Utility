@@ -80,13 +80,13 @@ namespace PIInterfaceConfigUtility
         
         private void SetupEventHandlers()
         {
-            runDiagnosticsButton.Click += RunDiagnosticsButton_Click;
-            clearButton.Click += ClearButton_Click;
+            runDiagnosticsButton!.Click += RunDiagnosticsButton_Click;
+            clearButton!.Click += ClearButton_Click;
         }
         
         private async void RunDiagnosticsButton_Click(object? sender, EventArgs e)
         {
-            runDiagnosticsButton.Enabled = false;
+            runDiagnosticsButton!.Enabled = false;
             runDiagnosticsButton.Text = "Running...";
             
             try
@@ -96,14 +96,14 @@ namespace PIInterfaceConfigUtility
             }
             finally
             {
-                runDiagnosticsButton.Enabled = true;
+                runDiagnosticsButton!.Enabled = true;
                 runDiagnosticsButton.Text = "Run Diagnostics";
             }
         }
         
         private void ClearButton_Click(object? sender, EventArgs e)
         {
-            diagnosticsTextBox.Clear();
+            diagnosticsTextBox!.Clear();
         }
         
         private async void UpdateTimer_Tick(object? sender, EventArgs e)

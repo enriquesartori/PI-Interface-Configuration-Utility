@@ -113,9 +113,9 @@ namespace PIInterfaceConfigUtility
         
         private void SetupEventHandlers()
         {
-            clearButton.Click += ClearButton_Click;
-            saveButton.Click += SaveButton_Click;
-            logLevelComboBox.SelectedIndexChanged += LogLevelComboBox_SelectedIndexChanged;
+            clearButton!.Click += ClearButton_Click;
+            saveButton!.Click += SaveButton_Click;
+            logLevelComboBox!.SelectedIndexChanged += LogLevelComboBox_SelectedIndexChanged;
         }
         
         private void StartLogSimulation()

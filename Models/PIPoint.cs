@@ -21,6 +21,7 @@ namespace PIInterfaceConfigUtility.Models
         private PIPointStatus _status = PIPointStatus.Unknown;
         private string _interfaceName = "";
         private string _digitalStates = "";
+        private int _id;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -49,6 +50,22 @@ namespace PIInterfaceConfigUtility.Models
         /// </summary>
         public PIPoint()
         {
+        }
+
+        /// <summary>
+        /// Unique identifier for the PI Point
+        /// </summary>
+        public int Id
+        {
+            get => _id;
+            set
+            {
+                if (_id != value)
+                {
+                    _id = value;
+                    OnPropertyChanged(nameof(Id));
+                }
+            }
         }
 
         /// <summary>
@@ -97,6 +114,15 @@ namespace PIInterfaceConfigUtility.Models
                     OnPropertyChanged(nameof(DataType));
                 }
             }
+        }
+
+        /// <summary>
+        /// Legacy Type property for compatibility
+        /// </summary>
+        public PIPointType Type
+        {
+            get => (PIPointType)_dataType;
+            set => DataType = (PIPointDataType)value;
         }
 
         /// <summary>
@@ -240,6 +266,15 @@ namespace PIInterfaceConfigUtility.Models
             LastUpdateTime == DateTime.MinValue ? "Never" : LastUpdateTime.ToString("yyyy-MM-dd HH:mm:ss");
 
         /// <summary>
+        /// Legacy LastUpdate property for compatibility
+        /// </summary>
+        public DateTime LastUpdate
+        {
+            get => LastUpdateTime;
+            set => LastUpdateTime = value;
+        }
+
+        /// <summary>
         /// Current status of the PI Point
         /// </summary>
         public PIPointStatus Status
@@ -292,6 +327,23 @@ namespace PIInterfaceConfigUtility.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        /// <summary>
+        /// Updates the current value and timestamp
+        /// </summary>
+        public void UpdateValue(object value, DateTime? timestamp = null)
+        {
+            CurrentValue = value;
+            LastUpdateTime = timestamp ?? DateTime.Now;
+        }
+
+        /// <summary>
+        /// Gets the formatted value for display
+        /// </summary>
+        public string GetFormattedValue()
+        {
+            return CurrentValueString;
+        }
+
         public override string ToString()
         {
             return $"{Name} ({DataType}) = {CurrentValueString}";
@@ -304,6 +356,7 @@ namespace PIInterfaceConfigUtility.Models
     public enum PIPointDataType
     {
         Boolean,
+        Int16,
         Int32,
         Float32,
         Float64,
@@ -317,6 +370,7 @@ namespace PIInterfaceConfigUtility.Models
     public enum PIPointType
     {
         Boolean,
+        Int16,
         Int32,
         Float32,
         Float64,
