@@ -12,10 +12,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup .NET 6
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
         
@@ -32,13 +32,13 @@ jobs:
       run: dotnet publish PIInterfaceConfigUtility.csproj --configuration Release --runtime win-x86 --self-contained true --output "publish/win-x86" -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true
       
     - name: Upload x64 artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PIInterfaceConfigUtility-win-x64
         path: publish/win-x64/PIInterfaceConfigUtility.exe
         
     - name: Upload x86 artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PIInterfaceConfigUtility-win-x86
         path: publish/win-x86/PIInterfaceConfigUtility.exe 
