@@ -202,10 +202,10 @@ namespace PIInterfaceConfigUtility
         
         private void ShowProgress(bool show)
         {
-            progressBar.Visible = show;
+            progressBar!.Visible = show;
             if (show)
             {
-                progressBar.Style = ToolStripProgressBarStyle.Marquee;
+                progressBar.Style = ProgressBarStyle.Marquee;
             }
         }
         

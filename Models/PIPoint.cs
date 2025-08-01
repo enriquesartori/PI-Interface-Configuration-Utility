@@ -32,6 +32,8 @@ namespace PIInterfaceConfigUtility.Models
         private string _conversionFormula = "";
         private bool _filterDuplicates = false;
         private double _compressionDeviation = 0.0;
+        private double _compressionTimeDeadband = 0.0;
+        private Dictionary<string, object> _attributes = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -497,6 +499,38 @@ namespace PIInterfaceConfigUtility.Models
                 {
                     _compressionDeviation = value;
                     OnPropertyChanged(nameof(CompressionDeviation));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Time deadband for compression (seconds)
+        /// </summary>
+        public double CompressionTimeDeadband
+        {
+            get => _compressionTimeDeadband;
+            set
+            {
+                if (_compressionTimeDeadband != value)
+                {
+                    _compressionTimeDeadband = value;
+                    OnPropertyChanged(nameof(CompressionTimeDeadband));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Custom attributes dictionary for additional properties
+        /// </summary>
+        public Dictionary<string, object> Attributes
+        {
+            get => _attributes;
+            set
+            {
+                if (_attributes != value)
+                {
+                    _attributes = value ?? new Dictionary<string, object>();
+                    OnPropertyChanged(nameof(Attributes));
                 }
             }
         }

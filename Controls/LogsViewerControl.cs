@@ -180,7 +180,7 @@ namespace PIInterfaceConfigUtility
             var logEntry = $"[{timestamp}] {level.PadRight(7)} {message}";
             
             // Check if this log level should be displayed
-            var selectedLevel = logLevelComboBox.SelectedItem?.ToString();
+            var selectedLevel = logLevelComboBox!.SelectedItem?.ToString();
             if (selectedLevel != "All" && selectedLevel != level)
                 return;
             
@@ -194,14 +194,14 @@ namespace PIInterfaceConfigUtility
                 _ => Color.White
             };
             
-            logsTextBox.SelectionStart = logsTextBox.TextLength;
+            logsTextBox!.SelectionStart = logsTextBox.TextLength;
             logsTextBox.SelectionLength = 0;
             logsTextBox.SelectionColor = color;
             logsTextBox.AppendText(logEntry + Environment.NewLine);
             logsTextBox.SelectionColor = logsTextBox.ForeColor;
             
             // Auto-scroll if enabled
-            if (autoScrollCheckBox.Checked)
+            if (autoScrollCheckBox!.Checked)
             {
                 logsTextBox.SelectionStart = logsTextBox.Text.Length;
                 logsTextBox.ScrollToCaret();
@@ -219,7 +219,7 @@ namespace PIInterfaceConfigUtility
         
         private void ClearButton_Click(object? sender, EventArgs e)
         {
-            logsTextBox.Clear();
+            logsTextBox!.Clear();
             AppendLog("INFO", "Log viewer cleared");
         }
         

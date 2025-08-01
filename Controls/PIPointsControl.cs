@@ -309,7 +309,7 @@ namespace PIInterfaceConfigUtility
         
         private void PointsGrid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (e.ColumnIndex == pointsGrid.Columns["Status"].Index && e.Value != null)
+            if (e.ColumnIndex == pointsGrid!.Columns["Status"].Index && e.Value != null)
             {
                 var status = (PIPointStatus)e.Value;
                 e.CellStyle.ForeColor = status switch
@@ -336,7 +336,7 @@ namespace PIInterfaceConfigUtility
         
         private void PointsGrid_SelectionChanged(object? sender, EventArgs e)
         {
-            if (pointsGrid.SelectedRows.Count > 0)
+            if (pointsGrid!.SelectedRows.Count > 0)
             {
                 var selectedRow = pointsGrid.SelectedRows[0];
                 var point = selectedRow.DataBoundItem?.GetType().GetProperty("Point")?.GetValue(selectedRow.DataBoundItem) as PIPoint;

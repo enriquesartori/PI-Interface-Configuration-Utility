@@ -307,7 +307,7 @@ namespace PIInterfaceConfigUtility
         
         private void DeleteInterface_Click(object? sender, EventArgs e)
         {
-            if (interfacesGrid.SelectedRows.Count == 0)
+            if (interfacesGrid!.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select an interface to delete.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -335,7 +335,7 @@ namespace PIInterfaceConfigUtility
         
         private async void StartInterface_Click(object? sender, EventArgs e)
         {
-            if (interfacesGrid.SelectedRows.Count == 0)
+            if (interfacesGrid!.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select an interface to start.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -362,7 +362,7 @@ namespace PIInterfaceConfigUtility
         
         private async void StopInterface_Click(object? sender, EventArgs e)
         {
-            if (interfacesGrid.SelectedRows.Count == 0)
+            if (interfacesGrid!.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select an interface to stop.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);

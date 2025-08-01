@@ -79,7 +79,7 @@ namespace PIInterfaceConfigUtility.Services
                 
                 var settings = new JsonSerializerSettings
                 {
-                    Formatting = Formatting.Indented,
+                    Formatting = Newtonsoft.Json.Formatting.Indented,
                     NullValueHandling = NullValueHandling.Ignore,
                     DateFormatHandling = DateFormatHandling.IsoDateFormat
                 };
@@ -292,7 +292,7 @@ namespace PIInterfaceConfigUtility.Services
         {
             var settings = new JsonSerializerSettings
             {
-                Formatting = Formatting.Indented,
+                Formatting = Newtonsoft.Json.Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat
             };
@@ -392,7 +392,15 @@ namespace PIInterfaceConfigUtility.Services
         
         public void RemovePoint(string pointId)
         {
-            currentConfiguration.Points.RemoveAll(p => p.Id == pointId);
+            if (int.TryParse(pointId, out int id))
+            {
+                currentConfiguration.Points.RemoveAll(p => p.Id == id);
+            }
+            else
+            {
+                // If pointId is not numeric, try matching by name
+                currentConfiguration.Points.RemoveAll(p => p.Name == pointId);
+            }
             HasUnsavedChanges = true;
         }
         
