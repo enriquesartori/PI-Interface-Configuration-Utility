@@ -290,21 +290,19 @@ namespace PIInterfaceConfigUtility
                 pointsGrid!.DataSource = null;
                 return;
             }
-            
+
             var pointList = piServerManager.PIPoints.Select(p => new
             {
-                p.Name,
-                p.Type,
-                p.SourceAddress,
-                CurrentValue = p.GetFormattedValue(),
-                p.Units,
-                p.Status,
-                p.LastUpdate,
-                p.Description,
-                Point = p
+                Point = p,
+                Name = p.Name,
+                Type = p.DataType.ToString(),
+                Value = p.GetFormattedValue(),
+                Status = p.Status.ToString(),
+                LastUpdate = p.LastUpdateTimeString,
+                Interface = p.InterfaceName
             }).ToList();
             
-            pointsGrid.DataSource = pointList;
+            pointsGrid!.DataSource = pointList;
         }
         
         private void PointsGrid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -343,45 +341,40 @@ namespace PIInterfaceConfigUtility
                 
                 if (point != null)
                 {
-                    propertyGrid.SelectedObject = point;
+                    propertyGrid!.SelectedObject = point;
                 }
             }
             else
             {
-                propertyGrid.SelectedObject = null;
+                propertyGrid!.SelectedObject = null;
             }
         }
         
         private async void SearchButton_Click(object? sender, EventArgs e)
         {
-            if (!piServerManager.IsConnected)
-            {
-                MessageBox.Show("Please connect to a PI Server first.", "Not Connected",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
             try
             {
-                searchButton.Enabled = false;
+                searchButton!.Enabled = false;
                 searchButton.Text = "Searching...";
                 
-                var searchPattern = string.IsNullOrWhiteSpace(searchTextBox.Text) ? "*" : searchTextBox.Text;
+                var searchPattern = string.IsNullOrWhiteSpace(searchTextBox!.Text) ? "*" : searchTextBox.Text;
                 var points = await piServerManager.SearchPIPointsAsync(searchPattern);
                 
                 LoadPIPoints();
                 
-                MessageBox.Show($"Found {points.Count} PI points matching '{searchPattern}'", "Search Complete",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                connectionStatusLabel!.Text = $"Found {points.Count} points";
+                connectionStatusLabel.ForeColor = Color.Green;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Search failed: {ex.Message}", "Search Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+                connectionStatusLabel!.Text = "Search failed";
+                connectionStatusLabel.ForeColor = Color.Red;
             }
             finally
             {
-                searchButton.Enabled = true;
+                searchButton!.Enabled = true;
                 searchButton.Text = "Search";
             }
         }
@@ -395,57 +388,50 @@ namespace PIInterfaceConfigUtility
             }
         }
         
-        private void AddPoint_Click(object? sender, EventArgs e)
+        private async void AddPoint_Click(object? sender, EventArgs e)
         {
-            if (!piServerManager.IsConnected)
-            {
-                MessageBox.Show("Please connect to a PI Server first.", "Not Connected",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
-            var addDialog = new AddPIPointDialog();
+            using var addDialog = new AddPIPointDialog();
             if (addDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
                     var newPoint = addDialog.PIPoint;
-                    piServerManager.CreatePIPointAsync(newPoint);
+                    await piServerManager.CreatePIPointAsync(newPoint);
                     LoadPIPoints();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error adding PI point: {ex.Message}", "Error",
+                    MessageBox.Show($"Failed to add PI point: {ex.Message}", "Add Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
         
-        private void EditPoint_Click(object? sender, EventArgs e)
+        private async void EditPoint_Click(object? sender, EventArgs e)
         {
-            if (pointsGrid.SelectedRows.Count == 0)
+            if (pointsGrid!.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select a PI point to edit.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            
+
             var selectedRow = pointsGrid.SelectedRows[0];
             var point = selectedRow.DataBoundItem?.GetType().GetProperty("Point")?.GetValue(selectedRow.DataBoundItem) as PIPoint;
             
             if (point != null)
             {
-                var editDialog = new EditPIPointDialog(point);
+                using var editDialog = new EditPIPointDialog(point);
                 if (editDialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
-                        piServerManager.UpdatePIPointAsync(editDialog.PIPoint);
+                        await piServerManager.UpdatePIPointAsync(editDialog.PIPoint);
                         LoadPIPoints();
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error updating PI point: {ex.Message}", "Error",
+                        MessageBox.Show($"Failed to update PI point: {ex.Message}", "Update Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }

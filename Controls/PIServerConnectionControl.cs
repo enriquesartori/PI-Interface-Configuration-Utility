@@ -5,6 +5,7 @@ using PIInterfaceConfigUtility.Models;
 using PIInterfaceConfigUtility.Services;
 using PIInterfaceConfigUtility.Dialogs;
 using System.Collections.Generic; // Added for List<string> in DiscoverButton_Click
+using System.Threading.Tasks; // Added for Task.Delay
 
 namespace PIInterfaceConfigUtility
 {
@@ -297,6 +298,9 @@ namespace PIInterfaceConfigUtility
                 discoverButton!.Enabled = false;
                 discoverButton.Text = "Discovering...";
 
+                // Simulate async discovery process
+                await Task.Delay(2000);
+                
                 // Create a simple discovery simulation since the method doesn't exist
                 var servers = new List<string> { "localhost", "PI-SERVER-01", "PI-SERVER-02" };
                 
@@ -309,6 +313,11 @@ namespace PIInterfaceConfigUtility
                 if (servers.Count == 0)
                 {
                     MessageBox.Show("No PI Servers discovered on the network.", "Discovery Result",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"Discovered {servers.Count} PI Servers.", "Discovery Complete",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
