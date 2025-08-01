@@ -1,0 +1,44 @@
+name: Build PI Interface Configuration Utility
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-net6:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET 6
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore PIInterfaceConfigUtility.csproj
+      
+    - name: Build
+      run: dotnet build PIInterfaceConfigUtility.csproj --configuration Release --no-restore
+      
+    - name: Publish Windows x64
+      run: dotnet publish PIInterfaceConfigUtility.csproj --configuration Release --runtime win-x64 --self-contained true --output "publish/win-x64" -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true
+      
+    - name: Publish Windows x86
+      run: dotnet publish PIInterfaceConfigUtility.csproj --configuration Release --runtime win-x86 --self-contained true --output "publish/win-x86" -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true
+      
+    - name: Upload x64 artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: PIInterfaceConfigUtility-win-x64
+        path: publish/win-x64/PIInterfaceConfigUtility.exe
+        
+    - name: Upload x86 artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: PIInterfaceConfigUtility-win-x86
+        path: publish/win-x86/PIInterfaceConfigUtility.exe 
