@@ -6,7 +6,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyTitle>PI Interface Configuration Utility</AssemblyTitle>
     <AssemblyDescription>Desktop application for configuring PI interfaces and managing data collection</AssemblyDescription>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
