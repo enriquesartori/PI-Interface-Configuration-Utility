@@ -11,7 +11,7 @@ namespace PIInterfaceConfigUtility
         private ComboBox logLevelComboBox;
         private Button clearButton, saveButton;
         private CheckBox autoScrollCheckBox;
-        private Timer logTimer;
+        private System.Windows.Forms.Timer logTimer;
         
         public LogsViewerControl()
         {
@@ -125,7 +125,7 @@ namespace PIInterfaceConfigUtility
             AppendLog("INFO", "Log viewer initialized");
             
             // Start timer for simulated log entries
-            logTimer = new Timer();
+            logTimer = new System.Windows.Forms.Timer();
             logTimer.Interval = 5000; // Add log entry every 5 seconds
             logTimer.Tick += LogTimer_Tick;
             logTimer.Start();

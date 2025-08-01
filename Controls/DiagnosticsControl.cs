@@ -13,7 +13,7 @@ namespace PIInterfaceConfigUtility
         private readonly InterfaceManager interfaceManager;
         private RichTextBox diagnosticsTextBox;
         private Button runDiagnosticsButton, clearButton;
-        private Timer updateTimer;
+        private System.Windows.Forms.Timer updateTimer;
         
         public DiagnosticsControl(PIServerManager serverManager, InterfaceManager manager)
         {
@@ -70,7 +70,7 @@ namespace PIInterfaceConfigUtility
             });
             
             // Update timer
-            updateTimer = new Timer();
+            updateTimer = new System.Windows.Forms.Timer();
             updateTimer.Interval = 10000; // Update every 10 seconds
             updateTimer.Tick += UpdateTimer_Tick;
             updateTimer.Start();
