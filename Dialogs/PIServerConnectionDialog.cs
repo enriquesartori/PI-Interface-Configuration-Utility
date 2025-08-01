@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Threading.Tasks; // Added for Task.Run
+using PIInterfaceConfigUtility.Models;
 
 namespace PIInterfaceConfigUtility
 {
@@ -16,6 +17,8 @@ namespace PIInterfaceConfigUtility
         public int Port => int.TryParse(portTextBox.Text, out int port) ? port : 5450;
         public string Username => windowsAuthCheckBox.Checked ? "" : usernameTextBox.Text;
         public string Password => windowsAuthCheckBox.Checked ? "" : passwordTextBox.Text;
+        
+        public PIServerConnection Connection { get; private set; } = new();
         
         public PIServerConnectionDialog()
         {
@@ -198,8 +201,21 @@ namespace PIInterfaceConfigUtility
         {
             if (!ValidateInput())
             {
-                this.DialogResult = DialogResult.None;
+                return;
             }
+
+            // Create the connection object with user input
+            Connection = new PIServerConnection
+            {
+                ServerName = serverTextBox.Text.Trim(),
+                Port = int.TryParse(portTextBox.Text, out int port) ? port : 5450,
+                Username = windowsAuthCheckBox.Checked ? "" : usernameTextBox.Text.Trim(),
+                Password = windowsAuthCheckBox.Checked ? "" : passwordTextBox.Text,
+                UseWindowsAuthentication = windowsAuthCheckBox.Checked
+            };
+
+            DialogResult = DialogResult.OK;
+            Close();
         }
         
         private bool ValidateInput()

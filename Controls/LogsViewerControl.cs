@@ -234,7 +234,7 @@ namespace PIInterfaceConfigUtility
             {
                 try
                 {
-                    System.IO.File.WriteAllText(saveDialog.FileName, logsTextBox.Text);
+                    System.IO.File.WriteAllText(saveDialog.FileName, logsTextBox!.Text);
                     AppendLog("INFO", $"Logs saved to: {saveDialog.FileName}");
                     MessageBox.Show("Logs saved successfully!", "Save Complete",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);

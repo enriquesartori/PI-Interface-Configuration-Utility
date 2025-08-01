@@ -211,27 +211,27 @@ namespace PIInterfaceConfigUtility
 
         private async void StartAllButton_Click(object? sender, EventArgs e)
         {
-            var interfaces = interfaceManager.GetInterfaces()
+            var interfaces = interfaceManager.Interfaces
                 .Where(i => i.Status != Models.InterfaceStatus.Running)
                 .ToList();
 
             if (interfaces.Any())
             {
                 await PerformBatchOperation("Starting all interfaces...", interfaces, 
-                    async (iface) => await interfaceManager.StartInterfaceAsync(iface.Id));
+                    async (iface) => await interfaceManager.StartInterfaceAsync(iface.Name));
             }
         }
 
         private async void StopAllButton_Click(object? sender, EventArgs e)
         {
-            var interfaces = interfaceManager.GetInterfaces()
+            var interfaces = interfaceManager.Interfaces
                 .Where(i => i.Status == Models.InterfaceStatus.Running)
                 .ToList();
 
             if (interfaces.Any())
             {
                 await PerformBatchOperation("Stopping all interfaces...", interfaces,
-                    async (iface) => await interfaceManager.StopInterfaceAsync(iface.Id));
+                    async (iface) => await interfaceManager.StopInterfaceAsync(iface.Name));
             }
         }
 
@@ -263,7 +263,7 @@ namespace PIInterfaceConfigUtility
             }
         }
 
-        private void InterfaceManager_InterfaceStatusChanged(object? sender, EventArgs e)
+        private void InterfaceManager_InterfaceStatusChanged(object? sender, PIInterfaceConfigUtility.Models.PIInterface e)
         {
             if (InvokeRequired)
             {
@@ -285,11 +285,11 @@ namespace PIInterfaceConfigUtility
 
         private void RefreshServices()
         {
-            var interfaces = interfaceManager.GetInterfaces().ToList();
+            var interfaces = interfaceManager.Interfaces.ToList();
             
-            servicesGrid.DataSource = interfaces;
+            servicesGrid!.DataSource = interfaces;
             
-            statusLabel.Text = $"Found {interfaces.Count} PI interfaces";
+            statusLabel!.Text = $"Found {interfaces.Count} PI interfaces";
             statusLabel.ForeColor = Color.Black;
         }
 
