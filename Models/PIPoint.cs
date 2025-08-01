@@ -20,8 +20,36 @@ namespace PIInterfaceConfigUtility.Models
         private DateTime _lastUpdateTime = DateTime.MinValue;
         private PIPointStatus _status = PIPointStatus.Unknown;
         private string _interfaceName = "";
+        private string _digitalStates = "";
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Constructor for compatibility with legacy code
+        /// </summary>
+        public PIPoint(string name, string sourceAddress, PIPointType pointType)
+        {
+            _name = name;
+            _sourceAddress = sourceAddress;
+            _dataType = (PIPointDataType)pointType;
+        }
+
+        /// <summary>
+        /// Constructor for compatibility with PIPointDataType
+        /// </summary>
+        public PIPoint(string name, string sourceAddress, PIPointDataType dataType)
+        {
+            _name = name;
+            _sourceAddress = sourceAddress;
+            _dataType = dataType;
+        }
+
+        /// <summary>
+        /// Default parameterless constructor
+        /// </summary>
+        public PIPoint()
+        {
+        }
 
         /// <summary>
         /// PI Point name/tag name
@@ -243,6 +271,22 @@ namespace PIInterfaceConfigUtility.Models
             }
         }
 
+        /// <summary>
+        /// Digital states for digital/boolean points (comma-separated)
+        /// </summary>
+        public string DigitalStates
+        {
+            get => _digitalStates;
+            set
+            {
+                if (_digitalStates != value)
+                {
+                    _digitalStates = value;
+                    OnPropertyChanged(nameof(DigitalStates));
+                }
+            }
+        }
+
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -263,7 +307,21 @@ namespace PIInterfaceConfigUtility.Models
         Int32,
         Float32,
         Float64,
-        String
+        String,
+        Digital = Boolean // Alias for compatibility
+    }
+
+    /// <summary>
+    /// Legacy alias for PIPointDataType (for compatibility)
+    /// </summary>
+    public enum PIPointType
+    {
+        Boolean,
+        Int32,
+        Float32,
+        Float64,
+        String,
+        Digital = Boolean
     }
 
     /// <summary>

@@ -10,11 +10,11 @@ namespace PIInterfaceConfigUtility
     public partial class InterfaceConfigurationControl : UserControl
     {
         private readonly InterfaceManager interfaceManager;
-        private ToolStrip toolStrip;
-        private DataGridView interfacesGrid;
-        private GroupBox propertiesGroupBox;
-        private PropertyGrid propertyGrid;
-        private SplitContainer splitContainer;
+        private ToolStrip? toolStrip;
+            private DataGridView? interfacesGrid;
+    private GroupBox? propertiesGroupBox;
+    private PropertyGrid? propertyGrid;
+    private SplitContainer? splitContainer;
         
         public InterfaceConfigurationControl(InterfaceManager manager)
         {

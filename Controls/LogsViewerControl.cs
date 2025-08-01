@@ -6,12 +6,12 @@ namespace PIInterfaceConfigUtility
 {
     public partial class LogsViewerControl : UserControl
     {
-        private RichTextBox logsTextBox;
-        private ToolStrip toolStrip;
-        private ComboBox logLevelComboBox;
-        private Button clearButton, saveButton;
-        private CheckBox autoScrollCheckBox;
-        private System.Windows.Forms.Timer logTimer;
+            private RichTextBox? logsTextBox;
+    private ToolStrip? toolStrip;
+    private ComboBox? logLevelComboBox;
+    private Button? clearButton, saveButton;
+    private CheckBox? autoScrollCheckBox;
+        private System.Windows.Forms.Timer? logTimer;
         
         public LogsViewerControl()
         {

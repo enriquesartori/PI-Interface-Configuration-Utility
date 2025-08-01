@@ -11,9 +11,9 @@ namespace PIInterfaceConfigUtility
     {
         private readonly PIServerManager piServerManager;
         private readonly InterfaceManager interfaceManager;
-        private RichTextBox diagnosticsTextBox;
-        private Button runDiagnosticsButton, clearButton;
-        private System.Windows.Forms.Timer updateTimer;
+            private RichTextBox? diagnosticsTextBox;
+    private Button? runDiagnosticsButton, clearButton;
+    private System.Windows.Forms.Timer? updateTimer;
         
         public DiagnosticsControl(PIServerManager serverManager, InterfaceManager manager)
         {
