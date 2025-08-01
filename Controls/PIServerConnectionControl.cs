@@ -298,11 +298,8 @@ namespace PIInterfaceConfigUtility
                 discoverButton!.Enabled = false;
                 discoverButton.Text = "Discovering...";
 
-                // Simulate async discovery process
-                await Task.Delay(2000);
-                
-                // Create a simple discovery simulation since the method doesn't exist
-                var servers = new List<string> { "localhost", "PI-SERVER-01", "PI-SERVER-02" };
+                // Use real PI server discovery
+                var servers = await realPIServerManager.DiscoverServersAsync();
                 
                 serversListBox!.Items.Clear();
                 foreach (var server in servers)
@@ -312,13 +309,13 @@ namespace PIInterfaceConfigUtility
 
                 if (servers.Count == 0)
                 {
-                    MessageBox.Show("No PI Servers discovered on the network.", "Discovery Result",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("No PI Servers discovered on the network.\n\nThis could mean:\n• No PI Data Archive servers are running\n• Network connectivity issues\n• Firewall blocking PI API port (5450)", 
+                        "Discovery Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show($"Discovered {servers.Count} PI Servers.", "Discovery Complete",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Discovered {servers.Count} PI Server(s):\n{string.Join("\n", servers)}", 
+                        "Discovery Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)

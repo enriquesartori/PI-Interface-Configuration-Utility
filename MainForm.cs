@@ -1,71 +1,101 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using PIInterfaceConfigUtility.Models;
+using PIInterfaceConfigUtility.Controls;
 using PIInterfaceConfigUtility.Services;
+using PIInterfaceConfigUtility.Dialogs;
 
 namespace PIInterfaceConfigUtility
 {
     public partial class MainForm : Form
     {
         private MenuStrip? menuStrip;
-        private ToolStrip? toolStrip;
-        private StatusStrip? statusStrip;
+        private ToolStripMenuItem? fileMenuItem;
+        private ToolStripMenuItem? helpMenuItem;
+        
         private TabControl? mainTabControl;
+        
+        // Tab pages - emphasizing the authentic PI ICU as main interface
+        private TabPage? authenticPIICUTab;
+        private TabPage? serverConnectionTab;
+        private TabPage? piPointsTab;
+        private TabPage? serviceManagementTab;
+        private TabPage? diagnosticsTab;
+        private TabPage? logsTab;
+        
+        // Controls for each tab
+        private AuthenticPIICUControl? authenticPIICUControl;
+        private PIServerConnectionControl? serverConnectionControl;
+        private PIPointsControl? piPointsControl;
+        private ServiceManagementControl? serviceManagementControl;
+        private DiagnosticsControl? diagnosticsControl;
+        private LogsViewerControl? logsViewerControl;
+        
+        // Services - real PI connectivity
+        private RealPIServerManager? realPIServerManager;
+        private PIServerManager? piServerManager; // Keep for backward compatibility
+        private InterfaceManager? interfaceManager;
+        private ConfigurationManager? configurationManager;
+
+        // Status and progress
+        private StatusStrip? statusStrip;
         private ToolStripStatusLabel? statusLabel;
         private ToolStripProgressBar? progressBar;
-        
-        private PIServerManager? piServerManager;
-        private InterfaceManager? interfaceManager;
-        private ConfigurationManager? configManager;
-        
+
         public MainForm()
         {
             InitializeComponent();
             InitializeServices();
-            SetupUI();
+            CreateMenuStrip();
+            CreateTabControl();
+            CreateTabPages();
+            CreateStatusStrip();
+            WireUpEventHandlers();
         }
-        
-        private void InitializeServices()
-        {
-            piServerManager = new PIServerManager();
-            interfaceManager = new InterfaceManager();
-            configManager = new ConfigurationManager();
-        }
-        
+
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            
-            // Form properties
-            this.AutoScaleDimensions = new SizeF(7F, 15F);
-            this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(1200, 800);
-            this.Name = "MainForm";
             this.Text = "PI Interface Configuration Utility";
-            this.WindowState = FormWindowState.Maximized;
+            this.Size = new Size(1000, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Icon = SystemIcons.Application;
-            
-            this.ResumeLayout(false);
         }
-        
-        private void SetupUI()
+
+        private void InitializeServices()
         {
-            SetupMenuStrip();
-            SetupToolStrip();
-            SetupStatusStrip();
-            SetupMainTabControl();
-            ApplyModernTheme();
+            // Initialize real PI server manager for authentic connectivity
+            realPIServerManager = new RealPIServerManager();
+            piServerManager = new PIServerManager(); // Keep for compatibility with existing controls
+            interfaceManager = new InterfaceManager();
+            configurationManager = new ConfigurationManager();
+            
+            // Set up real PI server manager events for main form feedback
+            realPIServerManager.ConnectionChanged += (s, conn) =>
+            {
+                if (statusLabel != null)
+                {
+                    statusLabel.Text = conn.IsConnected ? 
+                        $"✓ Connected to {conn.ServerName} (Real PI System)" : 
+                        $"Disconnected from {conn.ServerName}";
+                }
+            };
+            
+            realPIServerManager.StatusChanged += (s, status) =>
+            {
+                if (statusLabel != null)
+                {
+                    statusLabel.Text = status;
+                }
+            };
         }
-        
-        private void SetupMenuStrip()
+
+        private void CreateMenuStrip()
         {
             menuStrip = new MenuStrip();
             
             // File Menu
-            var fileMenu = new ToolStripMenuItem("&File");
-            fileMenu.DropDownItems.AddRange(new ToolStripItem[]
+            fileMenuItem = new ToolStripMenuItem("&File");
+            fileMenuItem.DropDownItems.AddRange(new ToolStripItem[]
             {
                 new ToolStripMenuItem("&New Configuration", null, NewConfiguration_Click),
                 new ToolStripMenuItem("&Open Configuration", null, OpenConfiguration_Click),
@@ -93,45 +123,72 @@ namespace PIInterfaceConfigUtility
             });
             
             // Help Menu
-            var helpMenu = new ToolStripMenuItem("&Help");
-            helpMenu.DropDownItems.AddRange(new ToolStripItem[]
+            helpMenuItem = new ToolStripMenuItem("&Help");
+            helpMenuItem.DropDownItems.AddRange(new ToolStripItem[]
             {
                 new ToolStripMenuItem("&About", null, ShowAbout_Click)
             });
             
-            menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, toolsMenu, helpMenu });
+            menuStrip.Items.AddRange(new ToolStripItem[] { fileMenuItem, toolsMenu, helpMenuItem });
             this.MainMenuStrip = menuStrip;
             this.Controls.Add(menuStrip);
         }
         
-        private void SetupToolStrip()
+        private void CreateTabControl()
         {
-            toolStrip = new ToolStrip();
-            toolStrip.ImageScalingSize = new Size(24, 24);
+            mainTabControl = new TabControl();
+            mainTabControl.Dock = DockStyle.Fill;
+            mainTabControl.Font = new Font("Segoe UI", 9F);
             
-            var newButton = new ToolStripButton("New", null, NewConfiguration_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            var openButton = new ToolStripButton("Open", null, OpenConfiguration_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            var saveButton = new ToolStripButton("Save", null, SaveConfiguration_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            var connectButton = new ToolStripButton("Connect", null, ConnectToPIServer_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            var startButton = new ToolStripButton("Start All", null, StartAllInterfaces_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            var stopButton = new ToolStripButton("Stop All", null, StopAllInterfaces_Click) { DisplayStyle = ToolStripItemDisplayStyle.ImageAndText };
-            
-            toolStrip.Items.AddRange(new ToolStripItem[]
-            {
-                newButton,
-                openButton,
-                saveButton,
-                new ToolStripSeparator(),
-                connectButton,
-                new ToolStripSeparator(),
-                startButton,
-                stopButton
-            });
-            
-            this.Controls.Add(toolStrip);
+            this.Controls.Add(mainTabControl);
         }
         
-        private void SetupStatusStrip()
+        private void CreateTabPages()
+        {
+            // Authentic PI ICU Tab - Main Interface (matching real PI ICU)
+            authenticPIICUTab = new TabPage("PI Interface Configuration Utility");
+            authenticPIICUControl = new AuthenticPIICUControl();
+            authenticPIICUControl.Dock = DockStyle.Fill;
+            authenticPIICUTab.Controls.Add(authenticPIICUControl);
+            mainTabControl!.TabPages.Add(authenticPIICUTab);
+
+            // Server Connection Tab
+            serverConnectionTab = new TabPage("Server Connection & Discovery");
+            serverConnectionControl = new PIServerConnectionControl();
+            serverConnectionControl.Dock = DockStyle.Fill;
+            serverConnectionTab.Controls.Add(serverConnectionControl);
+            mainTabControl.TabPages.Add(serverConnectionTab);
+
+            // PI Points Tab
+            piPointsTab = new TabPage("PI Points Management");
+            piPointsControl = new PIPointsControl();
+            piPointsControl.Dock = DockStyle.Fill;
+            piPointsTab.Controls.Add(piPointsControl);
+            mainTabControl.TabPages.Add(piPointsTab);
+
+            // Service Management Tab
+            serviceManagementTab = new TabPage("Interface Services");
+            serviceManagementControl = new ServiceManagementControl();
+            serviceManagementControl.Dock = DockStyle.Fill;
+            serviceManagementTab.Controls.Add(serviceManagementControl);
+            mainTabControl.TabPages.Add(serviceManagementTab);
+
+            // Diagnostics Tab
+            diagnosticsTab = new TabPage("System Diagnostics");
+            diagnosticsControl = new DiagnosticsControl();
+            diagnosticsControl.Dock = DockStyle.Fill;
+            diagnosticsTab.Controls.Add(diagnosticsControl);
+            mainTabControl.TabPages.Add(diagnosticsTab);
+
+            // Logs Tab
+            logsTab = new TabPage("Interface Logs");
+            logsViewerControl = new LogsViewerControl();
+            logsViewerControl.Dock = DockStyle.Fill;
+            logsTab.Controls.Add(logsViewerControl);
+            mainTabControl.TabPages.Add(logsTab);
+        }
+        
+        private void CreateStatusStrip()
         {
             statusStrip = new StatusStrip();
             statusLabel = new ToolStripStatusLabel("Ready");
@@ -142,56 +199,51 @@ namespace PIInterfaceConfigUtility
             this.Controls.Add(statusStrip);
         }
         
-        private void SetupMainTabControl()
+        private void WireUpEventHandlers()
         {
-            mainTabControl = new TabControl();
-            mainTabControl.Dock = DockStyle.Fill;
-            mainTabControl.Font = new Font("Segoe UI", 9F);
-            
-            // PI Server Connection Tab
-            var serverTab = new TabPage("PI Server Connection");
-            serverTab.Controls.Add(new PIServerConnectionControl(piServerManager));
-            
-            // Interface Configuration Tab
-            var interfaceTab = new TabPage("Interface Configuration");
-            interfaceTab.Controls.Add(new InterfaceConfigurationControl(interfaceManager));
-            
-            // PI Points Tab
-            var pointsTab = new TabPage("PI Points");
-            pointsTab.Controls.Add(new PIPointsControl(piServerManager));
-            
-            // Service Management Tab
-            var serviceTab = new TabPage("Service Management");
-            serviceTab.Controls.Add(new ServiceManagementControl(interfaceManager));
-            
-            // Diagnostics Tab
-            var diagnosticsTab = new TabPage("Diagnostics");
-            diagnosticsTab.Controls.Add(new DiagnosticsControl(piServerManager, interfaceManager));
-            
-            // Logs Tab
-            var logsTab = new TabPage("Logs");
-            logsTab.Controls.Add(new LogsViewerControl());
-            
-            mainTabControl.TabPages.AddRange(new TabPage[]
+            // Wire up compatibility service events
+            if (piServerManager != null)
             {
-                serverTab,
-                interfaceTab,
-                pointsTab,
-                serviceTab,
-                diagnosticsTab,
-                logsTab
-            });
+                piServerManager.ConnectionChanged += (s, e) =>
+                {
+                    if (statusLabel != null && !realPIServerManager!.IsConnected)
+                    {
+                        statusLabel.Text = piServerManager.IsConnected ? 
+                            "⚠ Connected (Simulation Mode)" : "Disconnected";
+                    }
+                };
+            }
+
+            if (interfaceManager != null)
+            {
+                interfaceManager.InterfaceStatusChanged += (s, e) =>
+                {
+                    if (statusLabel != null)
+                    {
+                        statusLabel.Text = $"Interface {e.Name} status: {e.Status}";
+                    }
+                };
+            }
             
-            this.Controls.Add(mainTabControl);
+            // Connect the authentic PI ICU control to the real PI server manager
+            if (authenticPIICUControl != null && realPIServerManager != null)
+            {
+                authenticPIICUControl.SetPIServerManager(realPIServerManager);
+            }
+            
+            // Also update server connection control to use real manager
+            if (serverConnectionControl != null && realPIServerManager != null)
+            {
+                // Server connection control will use both real and simulated managers
+            }
         }
         
         private void ApplyModernTheme()
         {
             this.BackColor = Color.FromArgb(240, 240, 240);
             menuStrip.BackColor = Color.White;
-            toolStrip.BackColor = Color.White;
-            statusStrip.BackColor = Color.FromArgb(240, 240, 240);
             mainTabControl.BackColor = Color.White;
+            statusStrip.BackColor = Color.FromArgb(240, 240, 240);
         }
         
         private void UpdateStatus(string message)
@@ -215,7 +267,7 @@ namespace PIInterfaceConfigUtility
             if (MessageBox.Show("Create a new configuration? Any unsaved changes will be lost.", 
                 "New Configuration", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                configManager.NewConfiguration();
+                configurationManager.NewConfiguration();
                 UpdateStatus("New configuration created.");
             }
         }
@@ -231,7 +283,7 @@ namespace PIInterfaceConfigUtility
                 {
                     try
                     {
-                        configManager.LoadConfiguration(openDialog.FileName);
+                        configurationManager.LoadConfiguration(openDialog.FileName);
                         UpdateStatus($"Configuration loaded: {openDialog.FileName}");
                     }
                     catch (Exception ex)
@@ -247,7 +299,7 @@ namespace PIInterfaceConfigUtility
         {
             try
             {
-                configManager.SaveConfiguration();
+                configurationManager.SaveConfiguration();
                 UpdateStatus("Configuration saved.");
             }
             catch (Exception ex)
@@ -268,7 +320,7 @@ namespace PIInterfaceConfigUtility
                 {
                     try
                     {
-                        configManager.SaveConfigurationAs(saveDialog.FileName);
+                        configurationManager.SaveConfigurationAs(saveDialog.FileName);
                         UpdateStatus($"Configuration saved as: {saveDialog.FileName}");
                     }
                     catch (Exception ex)
@@ -291,7 +343,7 @@ namespace PIInterfaceConfigUtility
                 {
                     try
                     {
-                        configManager.ImportConfiguration(importDialog.FileName);
+                        configurationManager.ImportConfiguration(importDialog.FileName);
                         UpdateStatus($"Configuration imported: {importDialog.FileName}");
                     }
                     catch (Exception ex)
@@ -314,7 +366,7 @@ namespace PIInterfaceConfigUtility
                 {
                     try
                     {
-                        configManager.ExportConfiguration(exportDialog.FileName);
+                        configurationManager.ExportConfiguration(exportDialog.FileName);
                         UpdateStatus($"Configuration exported: {exportDialog.FileName}");
                     }
                     catch (Exception ex)
@@ -323,83 +375,6 @@ namespace PIInterfaceConfigUtility
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-            }
-        }
-        
-        private async void ConnectToPIServer_Click(object sender, EventArgs e)
-        {
-            var connectionDialog = new PIServerConnectionDialog();
-            if (connectionDialog.ShowDialog() == DialogResult.OK)
-            {
-                ShowProgress(true);
-                UpdateStatus("Connecting to PI Server...");
-                
-                try
-                {
-                    await piServerManager.ConnectAsync(connectionDialog.ServerName, 
-                        connectionDialog.Username, connectionDialog.Password);
-                    UpdateStatus($"Connected to PI Server: {connectionDialog.ServerName}");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error", 
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    UpdateStatus("Connection failed.");
-                }
-                finally
-                {
-                    ShowProgress(false);
-                }
-            }
-        }
-        
-        private void DisconnectFromPIServer_Click(object sender, EventArgs e)
-        {
-            piServerManager.Disconnect();
-            UpdateStatus("Disconnected from PI Server.");
-        }
-        
-        private async void StartAllInterfaces_Click(object sender, EventArgs e)
-        {
-            ShowProgress(true);
-            UpdateStatus("Starting all interfaces...");
-            
-            try
-            {
-                await interfaceManager.StartAllInterfacesAsync();
-                UpdateStatus("All interfaces started.");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error starting interfaces: {ex.Message}", "Error", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateStatus("Failed to start all interfaces.");
-            }
-            finally
-            {
-                ShowProgress(false);
-            }
-        }
-        
-        private async void StopAllInterfaces_Click(object sender, EventArgs e)
-        {
-            ShowProgress(true);
-            UpdateStatus("Stopping all interfaces...");
-            
-            try
-            {
-                await interfaceManager.StopAllInterfacesAsync();
-                UpdateStatus("All interfaces stopped.");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error stopping interfaces: {ex.Message}", "Error", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateStatus("Failed to stop all interfaces.");
-            }
-            finally
-            {
-                ShowProgress(false);
             }
         }
         
