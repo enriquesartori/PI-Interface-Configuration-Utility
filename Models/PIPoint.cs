@@ -27,6 +27,11 @@ namespace PIInterfaceConfigUtility.Models
         private double _minValue = double.MinValue;
         private double _maxValue = double.MaxValue;
         private long _updateCount = 0;
+        private double _conversionFactor = 1.0;
+        private double _conversionOffset = 0.0;
+        private string _conversionFormula = "";
+        private bool _filterDuplicates = false;
+        private double _compressionDeviation = 0.0;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -412,6 +417,86 @@ namespace PIInterfaceConfigUtility.Models
                 {
                     _updateCount = value;
                     OnPropertyChanged(nameof(UpdateCount));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Conversion factor for scaling values
+        /// </summary>
+        public double ConversionFactor
+        {
+            get => _conversionFactor;
+            set
+            {
+                if (_conversionFactor != value)
+                {
+                    _conversionFactor = value;
+                    OnPropertyChanged(nameof(ConversionFactor));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Conversion offset for adjusting values
+        /// </summary>
+        public double ConversionOffset
+        {
+            get => _conversionOffset;
+            set
+            {
+                if (_conversionOffset != value)
+                {
+                    _conversionOffset = value;
+                    OnPropertyChanged(nameof(ConversionOffset));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Custom conversion formula for complex calculations
+        /// </summary>
+        public string ConversionFormula
+        {
+            get => _conversionFormula;
+            set
+            {
+                if (_conversionFormula != value)
+                {
+                    _conversionFormula = value;
+                    OnPropertyChanged(nameof(ConversionFormula));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether to filter duplicate values
+        /// </summary>
+        public bool FilterDuplicates
+        {
+            get => _filterDuplicates;
+            set
+            {
+                if (_filterDuplicates != value)
+                {
+                    _filterDuplicates = value;
+                    OnPropertyChanged(nameof(FilterDuplicates));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Compression deviation threshold for data compression
+        /// </summary>
+        public double CompressionDeviation
+        {
+            get => _compressionDeviation;
+            set
+            {
+                if (_compressionDeviation != value)
+                {
+                    _compressionDeviation = value;
+                    OnPropertyChanged(nameof(CompressionDeviation));
                 }
             }
         }

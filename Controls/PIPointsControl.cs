@@ -233,9 +233,9 @@ namespace PIInterfaceConfigUtility
             });
             
             // Custom formatting
-            pointsGrid.CellFormatting += PointsGrid_CellFormatting;
+            pointsGrid!.CellFormatting += PointsGrid_CellFormatting;
             
-            splitContainer.Panel1.Controls.Add(pointsGrid);
+            splitContainer!.Panel1.Controls.Add(pointsGrid);
         }
         
         private void SetupPropertiesPanel()
@@ -254,15 +254,15 @@ namespace PIInterfaceConfigUtility
                 HelpVisible = true
             };
             
-            propertiesGroupBox.Controls.Add(propertyGrid);
-            splitContainer.Panel2.Controls.Add(propertiesGroupBox);
+            propertiesGroupBox!.Controls.Add(propertyGrid!);
+            splitContainer!.Panel2.Controls.Add(propertiesGroupBox);
         }
         
         private void SetupEventHandlers()
         {
-            searchButton.Click += SearchButton_Click;
-            searchTextBox.KeyPress += SearchTextBox_KeyPress;
-            pointsGrid.SelectionChanged += PointsGrid_SelectionChanged;
+            searchButton!.Click += SearchButton_Click;
+            searchTextBox!.KeyPress += SearchTextBox_KeyPress;
+            pointsGrid!.SelectionChanged += PointsGrid_SelectionChanged;
             piServerManager.StatusChanged += PIServerManager_StatusChanged;
             piServerManager.ConnectionChanged += PIServerManager_ConnectionChanged;
         }
@@ -271,15 +271,15 @@ namespace PIInterfaceConfigUtility
         {
             if (piServerManager.IsConnected)
             {
-                connectionStatusLabel.Text = "Connected";
+                connectionStatusLabel!.Text = "Connected";
                 connectionStatusLabel.ForeColor = Color.Green;
-                searchButton.Enabled = true;
+                searchButton!.Enabled = true;
             }
             else
             {
-                connectionStatusLabel.Text = "Not Connected";
+                connectionStatusLabel!.Text = "Not Connected";
                 connectionStatusLabel.ForeColor = Color.Red;
-                searchButton.Enabled = false;
+                searchButton!.Enabled = false;
             }
         }
         
@@ -287,7 +287,7 @@ namespace PIInterfaceConfigUtility
         {
             if (!piServerManager.IsConnected)
             {
-                pointsGrid.DataSource = null;
+                pointsGrid!.DataSource = null;
                 return;
             }
             
