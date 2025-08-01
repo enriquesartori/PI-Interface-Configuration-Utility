@@ -3,241 +3,234 @@ using System.Drawing;
 using System.Windows.Forms;
 using PIInterfaceConfigUtility.Models;
 
-namespace PIInterfaceConfigUtility
+namespace PIInterfaceConfigUtility.Dialogs
 {
     public partial class AddPIPointDialog : Form
     {
-        private TextBox nameTextBox, descriptionTextBox, sourceAddressTextBox, unitsTextBox;
-        private ComboBox typeComboBox;
-        private CheckBox enabledCheckBox, archiveCheckBox;
-        private NumericUpDown scanIntervalNumeric;
-        private Button okButton, cancelButton;
-        
-        public PIPoint PIPoint { get; private set; }
-        
+        private Label? nameLabel;
+        private TextBox? nameTextBox;
+        private Label? descriptionLabel;
+        private TextBox? descriptionTextBox;
+        private Label? sourceAddressLabel;
+        private TextBox? sourceAddressTextBox;
+        private Label? unitsLabel;
+        private TextBox? unitsTextBox;
+        private Label? typeLabel;
+        private ComboBox? typeComboBox;
+        private CheckBox? enabledCheckBox;
+        private CheckBox? archiveCheckBox;
+        private Label? scanIntervalLabel;
+        private NumericUpDown? scanIntervalNumeric;
+        private Button? okButton;
+        private Button? cancelButton;
+
+        public PIPoint PIPoint { get; private set; } = new();
+
         public AddPIPointDialog()
         {
-            PIPoint = new PIPoint();
             InitializeComponent();
         }
-        
+
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            
-            this.Size = new Size(450, 400);
-            this.Text = "Add New PI Point";
+            this.Text = "Add PI Point";
+            this.Size = new Size(400, 350);
+            this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.ShowIcon = false;
-            
-            // Basic Information Group
-            var basicGroup = new GroupBox
-            {
-                Text = "Basic Information",
-                Location = new Point(15, 15),
-                Size = new Size(410, 150),
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-            };
-            
-            // Name
-            var nameLabel = new Label
-            {
-                Text = "Point Name:",
-                Location = new Point(15, 25),
-                Size = new Size(80, 23)
-            };
-            
-            nameTextBox = new TextBox
-            {
-                Location = new Point(105, 22),
-                Size = new Size(280, 23)
-            };
-            
-            // Type
-            var typeLabel = new Label
-            {
-                Text = "Data Type:",
-                Location = new Point(15, 55),
-                Size = new Size(80, 23)
-            };
-            
+
+            CreateControls();
+            LayoutControls();
+            SetupEventHandlers();
+        }
+
+        private void CreateControls()
+        {
+            nameLabel = new Label { Text = "Name:" };
+            nameTextBox = new TextBox();
+
+            descriptionLabel = new Label { Text = "Description:" };
+            descriptionTextBox = new TextBox();
+
+            sourceAddressLabel = new Label { Text = "Source Address:" };
+            sourceAddressTextBox = new TextBox();
+
+            unitsLabel = new Label { Text = "Units:" };
+            unitsTextBox = new TextBox();
+
+            typeLabel = new Label { Text = "Data Type:" };
             typeComboBox = new ComboBox
             {
-                Location = new Point(105, 52),
-                Size = new Size(150, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            
-            foreach (PIPointType type in Enum.GetValues<PIPointType>())
+            typeComboBox.Items.AddRange(new object[]
             {
-                typeComboBox.Items.Add(type);
-            }
-            typeComboBox.SelectedIndex = 0;
-            
-            // Source Address
-            var addressLabel = new Label
-            {
-                Text = "Source Address:",
-                Location = new Point(15, 85),
-                Size = new Size(100, 23)
-            };
-            
-            sourceAddressTextBox = new TextBox
-            {
-                Location = new Point(105, 82),
-                Size = new Size(150, 23)
-            };
-            
-            // Units
-            var unitsLabel = new Label
-            {
-                Text = "Units:",
-                Location = new Point(270, 85),
-                Size = new Size(40, 23)
-            };
-            
-            unitsTextBox = new TextBox
-            {
-                Location = new Point(315, 82),
-                Size = new Size(70, 23)
-            };
-            
-            // Description
-            var descLabel = new Label
-            {
-                Text = "Description:",
-                Location = new Point(15, 115),
-                Size = new Size(80, 23)
-            };
-            
-            descriptionTextBox = new TextBox
-            {
-                Location = new Point(105, 112),
-                Size = new Size(280, 23)
-            };
-            
-            basicGroup.Controls.AddRange(new Control[]
-            {
-                nameLabel, nameTextBox, typeLabel, typeComboBox,
-                addressLabel, sourceAddressTextBox, unitsLabel, unitsTextBox,
-                descLabel, descriptionTextBox
+                PIPointDataType.Float32,
+                PIPointDataType.Float64,
+                PIPointDataType.Int16,
+                PIPointDataType.Int32,
+                PIPointDataType.String,
+                PIPointDataType.Digital,
+                PIPointDataType.Timestamp
             });
-            
-            // Configuration Group
-            var configGroup = new GroupBox
-            {
-                Text = "Configuration",
-                Location = new Point(15, 175),
-                Size = new Size(410, 120),
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-            };
-            
-            // Enabled
+            typeComboBox.SelectedIndex = 0;
+
             enabledCheckBox = new CheckBox
             {
                 Text = "Enabled",
-                Location = new Point(15, 25),
-                Size = new Size(80, 23),
                 Checked = true
             };
-            
-            // Archive
+
             archiveCheckBox = new CheckBox
             {
-                Text = "Archive Data",
-                Location = new Point(105, 25),
-                Size = new Size(100, 23),
+                Text = "Archive",
                 Checked = true
             };
-            
-            // Scan Interval
-            var scanLabel = new Label
-            {
-                Text = "Scan Interval (ms):",
-                Location = new Point(15, 55),
-                Size = new Size(120, 23)
-            };
-            
+
+            scanIntervalLabel = new Label { Text = "Scan Interval (ms):" };
             scanIntervalNumeric = new NumericUpDown
             {
-                Location = new Point(145, 52),
-                Size = new Size(100, 23),
                 Minimum = 100,
-                Maximum = 60000,
-                Value = 1000
+                Maximum = 3600000,
+                Value = 5000,
+                Increment = 100
             };
-            
-            configGroup.Controls.AddRange(new Control[]
-            {
-                enabledCheckBox, archiveCheckBox, scanLabel, scanIntervalNumeric
-            });
-            
-            // Buttons
+
             okButton = new Button
             {
-                Text = "Add Point",
-                Location = new Point(270, 320),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(0, 120, 215),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
+                Text = "OK",
                 DialogResult = DialogResult.OK
             };
-            
+
             cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new Point(360, 320),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
                 DialogResult = DialogResult.Cancel
             };
-            
-            this.Controls.AddRange(new Control[]
-            {
-                basicGroup, configGroup, okButton, cancelButton
-            });
-            
+
             this.AcceptButton = okButton;
             this.CancelButton = cancelButton;
-            
-            okButton.Click += OkButton_Click;
-            
-            this.ResumeLayout(false);
         }
-        
+
+        private void LayoutControls()
+        {
+            const int labelWidth = 100;
+            const int controlWidth = 250;
+            const int rowHeight = 35;
+            const int leftMargin = 20;
+            int currentY = 20;
+
+            // Name
+            nameLabel!.Location = new Point(leftMargin, currentY);
+            nameLabel.Size = new Size(labelWidth, 20);
+            nameTextBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            nameTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Description
+            descriptionLabel!.Location = new Point(leftMargin, currentY);
+            descriptionLabel.Size = new Size(labelWidth, 20);
+            descriptionTextBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            descriptionTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Source Address
+            sourceAddressLabel!.Location = new Point(leftMargin, currentY);
+            sourceAddressLabel.Size = new Size(labelWidth, 20);
+            sourceAddressTextBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            sourceAddressTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Units
+            unitsLabel!.Location = new Point(leftMargin, currentY);
+            unitsLabel.Size = new Size(labelWidth, 20);
+            unitsTextBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            unitsTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Type
+            typeLabel!.Location = new Point(leftMargin, currentY);
+            typeLabel.Size = new Size(labelWidth, 20);
+            typeComboBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            typeComboBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Checkboxes
+            enabledCheckBox!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            enabledCheckBox.Size = new Size(100, 20);
+            archiveCheckBox!.Location = new Point(leftMargin + labelWidth + 120, currentY);
+            archiveCheckBox.Size = new Size(100, 20);
+            currentY += rowHeight;
+
+            // Scan Interval
+            scanIntervalLabel!.Location = new Point(leftMargin, currentY);
+            scanIntervalLabel.Size = new Size(labelWidth, 20);
+            scanIntervalNumeric!.Location = new Point(leftMargin + labelWidth + 10, currentY);
+            scanIntervalNumeric.Size = new Size(controlWidth, 20);
+            currentY += 50;
+
+            // Buttons
+            okButton!.Location = new Point(leftMargin + controlWidth - 80, currentY);
+            okButton.Size = new Size(75, 25);
+            cancelButton!.Location = new Point(leftMargin + controlWidth + 5, currentY);
+            cancelButton.Size = new Size(75, 25);
+
+            // Add controls to form
+            this.Controls.AddRange(new Control[]
+            {
+                nameLabel, nameTextBox,
+                descriptionLabel, descriptionTextBox,
+                sourceAddressLabel, sourceAddressTextBox,
+                unitsLabel, unitsTextBox,
+                typeLabel, typeComboBox,
+                enabledCheckBox, archiveCheckBox,
+                scanIntervalLabel, scanIntervalNumeric,
+                okButton, cancelButton
+            });
+        }
+
+        private void SetupEventHandlers()
+        {
+            okButton!.Click += OkButton_Click;
+        }
+
         private void OkButton_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(nameTextBox.Text))
+            if (string.IsNullOrWhiteSpace(nameTextBox!.Text))
             {
                 MessageBox.Show("Please enter a point name.", "Validation Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                this.DialogResult = DialogResult.None;
+                nameTextBox.Focus();
                 return;
             }
-            
-            if (string.IsNullOrWhiteSpace(sourceAddressTextBox.Text))
+
+            if (string.IsNullOrWhiteSpace(sourceAddressTextBox!.Text))
             {
                 MessageBox.Show("Please enter a source address.", "Validation Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                this.DialogResult = DialogResult.None;
+                sourceAddressTextBox.Focus();
                 return;
             }
-            
-            // Create the PI point with form values
-            PIPoint = new PIPoint(nameTextBox.Text, sourceAddressTextBox.Text, (PIPointType)typeComboBox.SelectedItem)
+
+            // Create the PI Point
+            PIPoint = new PIPoint
             {
-                Description = descriptionTextBox.Text,
-                Units = unitsTextBox.Text,
-                Enabled = enabledCheckBox.Checked,
-                Archive = archiveCheckBox.Checked,
-                ScanInterval = (int)scanIntervalNumeric.Value
+                Name = nameTextBox.Text.Trim(),
+                Description = descriptionTextBox!.Text.Trim(),
+                SourceAddress = sourceAddressTextBox.Text.Trim(),
+                Units = unitsTextBox!.Text.Trim(),
+                DataType = (PIPointDataType)typeComboBox!.SelectedItem!,
+                IsEnabled = enabledCheckBox!.Checked,
+                IsArchiving = archiveCheckBox!.Checked,
+                ScanInterval = TimeSpan.FromMilliseconds((double)scanIntervalNumeric!.Value),
+                Status = PIPointStatus.Good,
+                CreatedTime = DateTime.Now,
+                LastUpdateTime = DateTime.Now
             };
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
     }
 } 

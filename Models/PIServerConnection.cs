@@ -1,27 +1,157 @@
 using System;
+using System.ComponentModel;
 
 namespace PIInterfaceConfigUtility.Models
 {
-    public class PIServerConnection
+    /// <summary>
+    /// Represents a connection to a PI Server
+    /// </summary>
+    public class PIServerConnection : INotifyPropertyChanged
     {
-        public string ServerName { get; set; } = string.Empty;
-        public int Port { get; set; } = 5450;
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public bool UseWindowsAuthentication { get; set; } = true;
-        public bool IsConnected { get; set; } = false;
-        public DateTime? LastConnected { get; set; }
-        public string ConnectionString => $"{ServerName}:{Port}";
-        public int TimeoutSeconds { get; set; } = 30;
-        
-        public PIServerConnection() { }
-        
-        public PIServerConnection(string serverName, int port = 5450)
+        private string _serverName = "";
+        private int _port = 5450;
+        private string _username = "";
+        private string _password = "";
+        private bool _isConnected = false;
+        private DateTime _lastConnected = DateTime.MinValue;
+        private string _description = "";
+        private string _serverVersion = "";
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// PI Server name or IP address
+        /// </summary>
+        public string ServerName
         {
-            ServerName = serverName;
-            Port = port;
+            get => _serverName;
+            set
+            {
+                if (_serverName != value)
+                {
+                    _serverName = value;
+                    OnPropertyChanged(nameof(ServerName));
+                }
+            }
         }
-        
+
+        /// <summary>
+        /// PI Server port (typically 5450)
+        /// </summary>
+        public int Port
+        {
+            get => _port;
+            set
+            {
+                if (_port != value)
+                {
+                    _port = value;
+                    OnPropertyChanged(nameof(Port));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Username for PI Server authentication
+        /// </summary>
+        public string Username
+        {
+            get => _username;
+            set
+            {
+                if (_username != value)
+                {
+                    _username = value;
+                    OnPropertyChanged(nameof(Username));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Password for PI Server authentication
+        /// </summary>
+        public string Password
+        {
+            get => _password;
+            set
+            {
+                if (_password != value)
+                {
+                    _password = value;
+                    OnPropertyChanged(nameof(Password));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether currently connected to the PI Server
+        /// </summary>
+        public bool IsConnected
+        {
+            get => _isConnected;
+            set
+            {
+                if (_isConnected != value)
+                {
+                    _isConnected = value;
+                    OnPropertyChanged(nameof(IsConnected));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Last connection timestamp
+        /// </summary>
+        public DateTime LastConnected
+        {
+            get => _lastConnected;
+            set
+            {
+                if (_lastConnected != value)
+                {
+                    _lastConnected = value;
+                    OnPropertyChanged(nameof(LastConnected));
+                }
+            }
+        }
+
+        /// <summary>
+        /// PI Server description
+        /// </summary>
+        public string Description
+        {
+            get => _description;
+            set
+            {
+                if (_description != value)
+                {
+                    _description = value;
+                    OnPropertyChanged(nameof(Description));
+                }
+            }
+        }
+
+        /// <summary>
+        /// PI Server version information
+        /// </summary>
+        public string ServerVersion
+        {
+            get => _serverVersion;
+            set
+            {
+                if (_serverVersion != value)
+                {
+                    _serverVersion = value;
+                    OnPropertyChanged(nameof(ServerVersion));
+                }
+            }
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public override string ToString()
         {
             return $"{ServerName}:{Port} ({(IsConnected ? "Connected" : "Disconnected")})";

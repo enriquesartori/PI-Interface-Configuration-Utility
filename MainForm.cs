@@ -98,28 +98,24 @@ namespace PIInterfaceConfigUtility
             fileMenuItem.DropDownItems.AddRange(new ToolStripItem[]
             {
                 new ToolStripMenuItem("&New Configuration", null, NewConfiguration_Click),
-                new ToolStripMenuItem("&Open Configuration", null, OpenConfiguration_Click),
+                new ToolStripMenuItem("&Open Configuration...", null, OpenConfiguration_Click),
                 new ToolStripMenuItem("&Save Configuration", null, SaveConfiguration_Click),
                 new ToolStripMenuItem("Save Configuration &As...", null, SaveConfigurationAs_Click),
                 new ToolStripSeparator(),
-                new ToolStripMenuItem("&Import Configuration", null, ImportConfiguration_Click),
-                new ToolStripMenuItem("&Export Configuration", null, ExportConfiguration_Click),
+                new ToolStripMenuItem("&Import Configuration...", null, ImportConfiguration_Click),
+                new ToolStripMenuItem("&Export Configuration...", null, ExportConfiguration_Click),
                 new ToolStripSeparator(),
-                new ToolStripMenuItem("E&xit", null, (s, e) => Application.Exit())
+                new ToolStripMenuItem("E&xit", null, (s, e) => this.Close())
             });
             
-            // Tools Menu
             var toolsMenu = new ToolStripMenuItem("&Tools");
             toolsMenu.DropDownItems.AddRange(new ToolStripItem[]
             {
-                new ToolStripMenuItem("&Connect to PI Server", null, ConnectToPIServer_Click),
-                new ToolStripMenuItem("&Disconnect from PI Server", null, DisconnectFromPIServer_Click),
+                new ToolStripMenuItem("&Connect to PI Server", null, (s, e) => ConnectToPIServer()),
+                new ToolStripMenuItem("&Disconnect from PI Server", null, (s, e) => DisconnectFromPIServer()),
                 new ToolStripSeparator(),
-                new ToolStripMenuItem("&Start All Interfaces", null, StartAllInterfaces_Click),
-                new ToolStripMenuItem("S&top All Interfaces", null, StopAllInterfaces_Click),
-                new ToolStripSeparator(),
-                new ToolStripMenuItem("&Diagnostics", null, ShowDiagnostics_Click),
-                new ToolStripMenuItem("&Logs Viewer", null, ShowLogsViewer_Click)
+                new ToolStripMenuItem("&Start All Interfaces", null, (s, e) => StartAllInterfaces()),
+                new ToolStripMenuItem("S&top All Interfaces", null, (s, e) => StopAllInterfaces())
             });
             
             // Help Menu
@@ -154,28 +150,28 @@ namespace PIInterfaceConfigUtility
 
             // Server Connection Tab
             serverConnectionTab = new TabPage("Server Connection & Discovery");
-            serverConnectionControl = new PIServerConnectionControl();
+            serverConnectionControl = new PIServerConnectionControl(piServerManager!);
             serverConnectionControl.Dock = DockStyle.Fill;
             serverConnectionTab.Controls.Add(serverConnectionControl);
             mainTabControl.TabPages.Add(serverConnectionTab);
 
             // PI Points Tab
             piPointsTab = new TabPage("PI Points Management");
-            piPointsControl = new PIPointsControl();
+            piPointsControl = new PIPointsControl(piServerManager!);
             piPointsControl.Dock = DockStyle.Fill;
             piPointsTab.Controls.Add(piPointsControl);
             mainTabControl.TabPages.Add(piPointsTab);
 
             // Service Management Tab
             serviceManagementTab = new TabPage("Interface Services");
-            serviceManagementControl = new ServiceManagementControl();
+            serviceManagementControl = new ServiceManagementControl(interfaceManager!);
             serviceManagementControl.Dock = DockStyle.Fill;
             serviceManagementTab.Controls.Add(serviceManagementControl);
             mainTabControl.TabPages.Add(serviceManagementTab);
 
             // Diagnostics Tab
             diagnosticsTab = new TabPage("System Diagnostics");
-            diagnosticsControl = new DiagnosticsControl();
+            diagnosticsControl = new DiagnosticsControl(piServerManager!, interfaceManager!);
             diagnosticsControl.Dock = DockStyle.Fill;
             diagnosticsTab.Controls.Add(diagnosticsControl);
             mainTabControl.TabPages.Add(diagnosticsTab);
@@ -191,9 +187,18 @@ namespace PIInterfaceConfigUtility
         private void CreateStatusStrip()
         {
             statusStrip = new StatusStrip();
-            statusLabel = new ToolStripStatusLabel("Ready");
-            progressBar = new ToolStripProgressBar();
-            progressBar.Visible = false;
+            
+            statusLabel = new ToolStripStatusLabel("Ready")
+            {
+                Spring = true,
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            
+            progressBar = new ToolStripProgressBar()
+            {
+                Style = ProgressBarStyle.Marquee,
+                Visible = false
+            };
             
             statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel, progressBar });
             this.Controls.Add(statusStrip);
@@ -230,167 +235,238 @@ namespace PIInterfaceConfigUtility
             {
                 authenticPIICUControl.SetPIServerManager(realPIServerManager);
             }
-            
-            // Also update server connection control to use real manager
-            if (serverConnectionControl != null && realPIServerManager != null)
+        }
+
+        // PI Server Connection Methods
+        private async void ConnectToPIServer()
+        {
+            var connectionDialog = new PIServerConnectionDialog();
+            if (connectionDialog.ShowDialog() == DialogResult.OK)
             {
-                // Server connection control will use both real and simulated managers
-            }
-        }
-        
-        private void ApplyModernTheme()
-        {
-            this.BackColor = Color.FromArgb(240, 240, 240);
-            menuStrip.BackColor = Color.White;
-            mainTabControl.BackColor = Color.White;
-            statusStrip.BackColor = Color.FromArgb(240, 240, 240);
-        }
-        
-        private void UpdateStatus(string message)
-        {
-            statusLabel.Text = message;
-            statusStrip.Refresh();
-        }
-        
-        private void ShowProgress(bool show)
-        {
-            progressBar!.Visible = show;
-            if (show)
-            {
-                progressBar.Style = ProgressBarStyle.Marquee;
-            }
-        }
-        
-        // Event Handlers
-        private void NewConfiguration_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Create a new configuration? Any unsaved changes will be lost.", 
-                "New Configuration", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
-                configurationManager.NewConfiguration();
-                UpdateStatus("New configuration created.");
-            }
-        }
-        
-        private void OpenConfiguration_Click(object sender, EventArgs e)
-        {
-            using (var openDialog = new OpenFileDialog())
-            {
-                openDialog.Filter = "PI Config Files (*.piconfig)|*.piconfig|All Files (*.*)|*.*";
-                openDialog.Title = "Open Configuration";
+                ShowProgress(true);
+                UpdateStatus("Connecting to PI Server...");
                 
-                if (openDialog.ShowDialog() == DialogResult.OK)
+                try
                 {
-                    try
+                    // Try real PI server connection first
+                    bool realSuccess = await realPIServerManager!.ConnectAsync(connectionDialog.Connection.ServerName, 
+                        connectionDialog.Connection.Username, connectionDialog.Connection.Password);
+                        
+                    // Also connect with simulated manager for compatibility
+                    await piServerManager!.ConnectAsync(connectionDialog.Connection.ServerName, 
+                        connectionDialog.Connection.Username, connectionDialog.Connection.Password);
+                    
+                    if (realSuccess)
                     {
-                        configurationManager.LoadConfiguration(openDialog.FileName);
-                        UpdateStatus($"Configuration loaded: {openDialog.FileName}");
+                        UpdateStatus($"✓ Connected to PI Server: {connectionDialog.Connection.ServerName} (Real PI System)");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show($"Error loading configuration: {ex.Message}", "Error", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        UpdateStatus($"⚠ Connected to PI Server: {connectionDialog.Connection.ServerName} (Simulation Mode)");
                     }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UpdateStatus("Connection failed.");
+                }
+                finally
+                {
+                    ShowProgress(false);
                 }
             }
         }
-        
-        private void SaveConfiguration_Click(object sender, EventArgs e)
+
+        private void DisconnectFromPIServer()
+        {
+            realPIServerManager?.Disconnect();
+            piServerManager?.Disconnect();
+            UpdateStatus("Disconnected from PI Server.");
+        }
+
+        private async void StartAllInterfaces()
+        {
+            ShowProgress(true);
+            UpdateStatus("Starting all interfaces...");
+            
+            try
+            {
+                await interfaceManager!.StartAllInterfacesAsync();
+                UpdateStatus("All interfaces started.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting interfaces: {ex.Message}", "Error", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateStatus("Failed to start all interfaces.");
+            }
+            finally
+            {
+                ShowProgress(false);
+            }
+        }
+
+        private async void StopAllInterfaces()
+        {
+            ShowProgress(true);
+            UpdateStatus("Stopping all interfaces...");
+            
+            try
+            {
+                await interfaceManager!.StopAllInterfacesAsync();
+                UpdateStatus("All interfaces stopped.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping interfaces: {ex.Message}", "Error", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateStatus("Failed to stop all interfaces.");
+            }
+            finally
+            {
+                ShowProgress(false);
+            }
+        }
+
+        // Utility Methods
+        private void UpdateStatus(string message)
+        {
+            if (statusLabel != null)
+            {
+                statusLabel.Text = message;
+                Application.DoEvents();
+            }
+        }
+
+        private void ShowProgress(bool show)
+        {
+            if (progressBar != null)
+            {
+                progressBar.Visible = show;
+            }
+        }
+
+        // File Menu Event Handlers
+        private void NewConfiguration_Click(object? sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to create a new configuration? Any unsaved changes will be lost.",
+                "New Configuration", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                configurationManager!.NewConfiguration();
+                UpdateStatus("New configuration created.");
+            }
+        }
+
+        private void OpenConfiguration_Click(object? sender, EventArgs e)
+        {
+            using var openDialog = new OpenFileDialog
+            {
+                Filter = "Configuration Files (*.json)|*.json|All Files (*.*)|*.*",
+                Title = "Open Configuration"
+            };
+
+            if (openDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    configurationManager!.LoadConfiguration(openDialog.FileName);
+                    UpdateStatus($"Configuration loaded: {openDialog.FileName}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading configuration: {ex.Message}", "Load Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void SaveConfiguration_Click(object? sender, EventArgs e)
         {
             try
             {
-                configurationManager.SaveConfiguration();
+                configurationManager!.SaveConfiguration();
                 UpdateStatus("Configuration saved.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving configuration: {ex.Message}", "Error", 
+                MessageBox.Show($"Error saving configuration: {ex.Message}", "Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        
-        private void SaveConfigurationAs_Click(object sender, EventArgs e)
+
+        private void SaveConfigurationAs_Click(object? sender, EventArgs e)
         {
-            using (var saveDialog = new SaveFileDialog())
+            using var saveDialog = new SaveFileDialog
             {
-                saveDialog.Filter = "PI Config Files (*.piconfig)|*.piconfig|All Files (*.*)|*.*";
-                saveDialog.Title = "Save Configuration As";
-                
-                if (saveDialog.ShowDialog() == DialogResult.OK)
+                Filter = "Configuration Files (*.json)|*.json|All Files (*.*)|*.*",
+                Title = "Save Configuration As"
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
                 {
-                    try
-                    {
-                        configurationManager.SaveConfigurationAs(saveDialog.FileName);
-                        UpdateStatus($"Configuration saved as: {saveDialog.FileName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error saving configuration: {ex.Message}", "Error", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    configurationManager!.SaveConfigurationAs(saveDialog.FileName);
+                    UpdateStatus($"Configuration saved as: {saveDialog.FileName}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving configuration: {ex.Message}", "Save Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
-        
-        private void ImportConfiguration_Click(object sender, EventArgs e)
+
+        private void ImportConfiguration_Click(object? sender, EventArgs e)
         {
-            using (var importDialog = new OpenFileDialog())
+            using var importDialog = new OpenFileDialog
             {
-                importDialog.Filter = "JSON Files (*.json)|*.json|XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
-                importDialog.Title = "Import Configuration";
-                
-                if (importDialog.ShowDialog() == DialogResult.OK)
+                Filter = "All Supported Files (*.json;*.xml;*.csv)|*.json;*.xml;*.csv|JSON Files (*.json)|*.json|XML Files (*.xml)|*.xml|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+                Title = "Import Configuration"
+            };
+
+            if (importDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
                 {
-                    try
-                    {
-                        configurationManager.ImportConfiguration(importDialog.FileName);
-                        UpdateStatus($"Configuration imported: {importDialog.FileName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error importing configuration: {ex.Message}", "Error", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    configurationManager!.ImportConfiguration(importDialog.FileName);
+                    UpdateStatus($"Configuration imported: {importDialog.FileName}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error importing configuration: {ex.Message}", "Import Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
-        
-        private void ExportConfiguration_Click(object sender, EventArgs e)
+
+        private void ExportConfiguration_Click(object? sender, EventArgs e)
         {
-            using (var exportDialog = new SaveFileDialog())
+            using var exportDialog = new SaveFileDialog
             {
-                exportDialog.Filter = "JSON Files (*.json)|*.json|XML Files (*.xml)|*.xml";
-                exportDialog.Title = "Export Configuration";
-                
-                if (exportDialog.ShowDialog() == DialogResult.OK)
+                Filter = "JSON Files (*.json)|*.json|XML Files (*.xml)|*.xml|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+                Title = "Export Configuration"
+            };
+
+            if (exportDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
                 {
-                    try
-                    {
-                        configurationManager.ExportConfiguration(exportDialog.FileName);
-                        UpdateStatus($"Configuration exported: {exportDialog.FileName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error exporting configuration: {ex.Message}", "Error", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    configurationManager!.ExportConfiguration(exportDialog.FileName);
+                    UpdateStatus($"Configuration exported: {exportDialog.FileName}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error exporting configuration: {ex.Message}", "Export Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
-        
-        private void ShowDiagnostics_Click(object sender, EventArgs e)
+
+        private void ShowAbout_Click(object? sender, EventArgs e)
         {
-            mainTabControl.SelectedIndex = 4; // Diagnostics tab
-        }
-        
-        private void ShowLogsViewer_Click(object sender, EventArgs e)
-        {
-            mainTabControl.SelectedIndex = 5; // Logs tab
-        }
-        
-        private void ShowAbout_Click(object sender, EventArgs e)
-        {
-            var aboutDialog = new AboutDialog();
+            using var aboutDialog = new AboutDialog();
             aboutDialog.ShowDialog();
         }
     }
