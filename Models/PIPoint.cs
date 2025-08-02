@@ -15,9 +15,11 @@ namespace PIInterfaceConfigUtility.Models
         private string _units = "";
         private bool _isEnabled = true;
         private bool _isArchiving = true;
-        private int _scanInterval = 1000;
+        private DateTime _createdTime = DateTime.Now;
+        private DateTime _lastUpdateTime = DateTime.Now;
+        private string _lastUpdateTimeString = "";
+        private int _scanIntervalMs = 5000; // Store as milliseconds
         private object? _currentValue;
-        private DateTime _lastUpdateTime = DateTime.MinValue;
         private PIPointStatus _status = PIPointStatus.Unknown;
         private string _interfaceName = "";
         private string _digitalStates = "";
@@ -211,60 +213,23 @@ namespace PIInterfaceConfigUtility.Models
         }
 
         /// <summary>
-        /// Scan interval in milliseconds
+        /// When the point was created
         /// </summary>
-        public int ScanInterval
+        public DateTime CreatedTime
         {
-            get => _scanInterval;
+            get => _createdTime;
             set
             {
-                if (_scanInterval != value)
+                if (_createdTime != value)
                 {
-                    _scanInterval = value;
-                    OnPropertyChanged(nameof(ScanInterval));
+                    _createdTime = value;
+                    OnPropertyChanged(nameof(CreatedTime));
                 }
             }
         }
 
         /// <summary>
-        /// Current value of the PI Point
-        /// </summary>
-        public object? CurrentValue
-        {
-            get => _currentValue;
-            set
-            {
-                if (!Equals(_currentValue, value))
-                {
-                    _currentValue = value;
-                    OnPropertyChanged(nameof(CurrentValue));
-                    OnPropertyChanged(nameof(CurrentValueString));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Current value as a string for display
-        /// </summary>
-        public string CurrentValueString
-        {
-            get
-            {
-                if (CurrentValue == null) return "N/A";
-                return DataType switch
-                {
-                    PIPointDataType.Boolean => CurrentValue.ToString() ?? "false",
-                    PIPointDataType.Float32 or PIPointDataType.Float64 => 
-                        string.Format("{0:F2} {1}", CurrentValue, Units).Trim(),
-                    PIPointDataType.Int32 => $"{CurrentValue} {Units}".Trim(),
-                    PIPointDataType.String => CurrentValue.ToString() ?? "",
-                    _ => CurrentValue.ToString() ?? "N/A"
-                };
-            }
-        }
-
-        /// <summary>
-        /// Timestamp of last update
+        /// Last update timestamp
         /// </summary>
         public DateTime LastUpdateTime
         {
@@ -274,6 +239,7 @@ namespace PIInterfaceConfigUtility.Models
                 if (_lastUpdateTime != value)
                 {
                     _lastUpdateTime = value;
+                    _lastUpdateTimeString = value.ToString("yyyy-MM-dd HH:mm:ss");
                     OnPropertyChanged(nameof(LastUpdateTime));
                     OnPropertyChanged(nameof(LastUpdateTimeString));
                 }
@@ -281,10 +247,12 @@ namespace PIInterfaceConfigUtility.Models
         }
 
         /// <summary>
-        /// Last update time as a formatted string
+        /// Last update time as formatted string
         /// </summary>
-        public string LastUpdateTimeString => 
-            LastUpdateTime == DateTime.MinValue ? "Never" : LastUpdateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        public string LastUpdateTimeString
+        {
+            get => _lastUpdateTimeString;
+        }
 
         /// <summary>
         /// Legacy LastUpdate property for compatibility
@@ -531,6 +499,41 @@ namespace PIInterfaceConfigUtility.Models
                 {
                     _attributes = value ?? new Dictionary<string, object>();
                     OnPropertyChanged(nameof(Attributes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Scan interval in milliseconds (for backward compatibility)
+        /// </summary>
+        public int ScanInterval
+        {
+            get => _scanIntervalMs;
+            set
+            {
+                if (_scanIntervalMs != value)
+                {
+                    _scanIntervalMs = value;
+                    OnPropertyChanged(nameof(ScanInterval));
+                    OnPropertyChanged(nameof(ScanIntervalTimeSpan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Scan interval as TimeSpan (for modern usage)
+        /// </summary>
+        public TimeSpan ScanIntervalTimeSpan
+        {
+            get => TimeSpan.FromMilliseconds(_scanIntervalMs);
+            set
+            {
+                var ms = (int)value.TotalMilliseconds;
+                if (_scanIntervalMs != ms)
+                {
+                    _scanIntervalMs = ms;
+                    OnPropertyChanged(nameof(ScanInterval));
+                    OnPropertyChanged(nameof(ScanIntervalTimeSpan));
                 }
             }
         }

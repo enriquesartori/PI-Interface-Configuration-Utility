@@ -14,26 +14,34 @@ namespace PIInterfaceConfigUtility
     /// </summary>
     public partial class PIServerConnectionControl : UserControl
     {
-        private readonly PIServerManager piServerManager;
-        
+        private PIServerManager piServerManager;
+        private RealPIServerManager realPIServerManager = new();
+
+        // UI Controls (nullable for proper initialization)
         private GroupBox? connectionGroupBox;
+        private Label? serverNameLabel;
         private TextBox? serverNameTextBox;
-        private TextBox? portTextBox;
+        private Label? usernameLabel;
         private TextBox? usernameTextBox;
+        private Label? passwordLabel;
         private TextBox? passwordTextBox;
         private CheckBox? windowsAuthCheckBox;
-        private Button? connectButton, disconnectButton, testConnectionButton;
-        private Label? statusLabel;
-        private GroupBox? serversGroupBox;
+        private Button? connectButton;
+        private Button? disconnectButton;
+        private Button? testConnectionButton;
+        
+        private GroupBox? discoveryGroupBox;
+        private Button? discoverButton;
         private ListBox? serversListBox;
-        private Button? discoverButton, addServerButton, removeServerButton;
+        
+        private GroupBox? statusGroupBox;
+        private Label? connectionStatusLabel;
 
         public PIServerConnectionControl(PIServerManager serverManager)
         {
-            piServerManager = serverManager ?? throw new ArgumentNullException(nameof(serverManager));
+            piServerManager = serverManager;
             InitializeComponent();
             SetupEventHandlers();
-            UpdateUI();
         }
 
         private void InitializeComponent()

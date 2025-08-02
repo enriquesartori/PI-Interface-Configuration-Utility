@@ -64,16 +64,15 @@ namespace PIInterfaceConfigUtility.Dialogs
             {
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            typeComboBox.Items.AddRange(new object[]
-            {
-                PIPointDataType.Float32,
-                PIPointDataType.Float64,
-                PIPointDataType.Int16,
-                PIPointDataType.Int32,
-                PIPointDataType.String,
-                PIPointDataType.Digital,
-                PIPointDataType.Timestamp
-            });
+                         typeComboBox.Items.AddRange(new object[]
+             {
+                 PIPointDataType.Float32,
+                 PIPointDataType.Float64,
+                 PIPointDataType.Int16,
+                 PIPointDataType.Int32,
+                 PIPointDataType.String,
+                 PIPointDataType.Digital
+             });
             typeComboBox.SelectedIndex = 0;
 
             enabledCheckBox = new CheckBox
@@ -220,13 +219,13 @@ namespace PIInterfaceConfigUtility.Dialogs
                 Description = descriptionTextBox!.Text.Trim(),
                 SourceAddress = sourceAddressTextBox.Text.Trim(),
                 Units = unitsTextBox!.Text.Trim(),
-                DataType = (PIPointDataType)typeComboBox!.SelectedItem!,
-                IsEnabled = enabledCheckBox!.Checked,
-                IsArchiving = archiveCheckBox!.Checked,
-                ScanInterval = TimeSpan.FromMilliseconds((double)scanIntervalNumeric!.Value),
-                Status = PIPointStatus.Good,
-                CreatedTime = DateTime.Now,
-                LastUpdateTime = DateTime.Now
+                                 DataType = (PIPointDataType)typeComboBox!.SelectedItem!,
+                 IsEnabled = enabledCheckBox!.Checked,
+                 IsArchiving = archiveCheckBox!.Checked,
+                 ScanInterval = (int)scanIntervalNumeric!.Value,
+                 Status = PIPointStatus.Good,
+                 CreatedTime = DateTime.Now,
+                 LastUpdateTime = DateTime.Now
             };
 
             this.DialogResult = DialogResult.OK;

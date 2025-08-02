@@ -1,253 +1,243 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Threading.Tasks; // Added for Task.Run
 using PIInterfaceConfigUtility.Models;
 
-namespace PIInterfaceConfigUtility
+namespace PIInterfaceConfigUtility.Dialogs
 {
     public partial class PIServerConnectionDialog : Form
     {
-        private Label serverLabel, portLabel, usernameLabel, passwordLabel;
-        private TextBox serverTextBox, portTextBox, usernameTextBox, passwordTextBox;
-        private CheckBox windowsAuthCheckBox;
-        private Button okButton, cancelButton, testButton;
-        
-        public string ServerName => serverTextBox.Text;
-        public int Port => int.TryParse(portTextBox.Text, out int port) ? port : 5450;
-        public string Username => windowsAuthCheckBox.Checked ? "" : usernameTextBox.Text;
-        public string Password => windowsAuthCheckBox.Checked ? "" : passwordTextBox.Text;
-        
+        // Make all UI controls nullable
+        private Label? serverLabel;
+        private TextBox? serverNameTextBox;
+        private Label? portLabel;
+        private NumericUpDown? portNumeric;
+        private Label? usernameLabel;
+        private TextBox? usernameTextBox;
+        private Label? passwordLabel;
+        private TextBox? passwordTextBox;
+        private CheckBox? windowsAuthCheckBox;
+        private Button? testConnectionButton;
+        private Button? okButton;
+        private Button? cancelButton;
+
         public PIServerConnection Connection { get; private set; } = new();
-        
+
         public PIServerConnectionDialog()
         {
             InitializeComponent();
-            SetupEventHandlers();
         }
-        
+
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            
-            // Form properties
-            this.Size = new Size(400, 280);
             this.Text = "Connect to PI Server";
+            this.Size = new Size(400, 300);
+            this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.ShowIcon = false;
-            
-            // Server name
-            serverLabel = new Label
+
+            CreateControls();
+            LayoutControls();
+            SetupEventHandlers();
+        }
+
+        private void CreateControls()
+        {
+            serverLabel = new Label { Text = "Server Name:" };
+            serverNameTextBox = new TextBox { Text = "localhost" };
+
+            portLabel = new Label { Text = "Port:" };
+            portNumeric = new NumericUpDown
             {
-                Text = "Server Name:",
-                Location = new Point(15, 20),
-                Size = new Size(80, 23)
+                Minimum = 1,
+                Maximum = 65535,
+                Value = 5450
             };
-            
-            serverTextBox = new TextBox
-            {
-                Location = new Point(105, 17),
-                Size = new Size(200, 23),
-                Text = "localhost"
-            };
-            
-            // Port
-            portLabel = new Label
-            {
-                Text = "Port:",
-                Location = new Point(15, 50),
-                Size = new Size(80, 23)
-            };
-            
-            portTextBox = new TextBox
-            {
-                Location = new Point(105, 47),
-                Size = new Size(80, 23),
-                Text = "5450"
-            };
-            
-            // Windows Authentication
+
+            usernameLabel = new Label { Text = "Username:" };
+            usernameTextBox = new TextBox();
+
+            passwordLabel = new Label { Text = "Password:" };
+            passwordTextBox = new TextBox { UseSystemPasswordChar = true };
+
             windowsAuthCheckBox = new CheckBox
             {
                 Text = "Use Windows Authentication",
-                Location = new Point(15, 80),
-                Size = new Size(250, 23),
                 Checked = true
             };
-            
-            // Username
-            usernameLabel = new Label
-            {
-                Text = "Username:",
-                Location = new Point(15, 110),
-                Size = new Size(80, 23),
-                Enabled = false
-            };
-            
-            usernameTextBox = new TextBox
-            {
-                Location = new Point(105, 107),
-                Size = new Size(200, 23),
-                Enabled = false
-            };
-            
-            // Password
-            passwordLabel = new Label
-            {
-                Text = "Password:",
-                Location = new Point(15, 140),
-                Size = new Size(80, 23),
-                Enabled = false
-            };
-            
-            passwordTextBox = new TextBox
-            {
-                Location = new Point(105, 137),
-                Size = new Size(200, 23),
-                UseSystemPasswordChar = true,
-                Enabled = false
-            };
-            
-            // Buttons
-            testButton = new Button
-            {
-                Text = "Test Connection",
-                Location = new Point(15, 200),
-                Size = new Size(110, 30),
-                BackColor = Color.FromArgb(16, 137, 62),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            
+
+            testConnectionButton = new Button { Text = "Test Connection" };
+
             okButton = new Button
             {
-                Text = "Connect",
-                Location = new Point(195, 200),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(0, 120, 215),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
+                Text = "OK",
                 DialogResult = DialogResult.OK
             };
-            
+
             cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new Point(285, 200),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(232, 17, 35),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
                 DialogResult = DialogResult.Cancel
             };
-            
-            this.Controls.AddRange(new Control[]
-            {
-                serverLabel, serverTextBox, portLabel, portTextBox,
-                windowsAuthCheckBox, usernameLabel, usernameTextBox,
-                passwordLabel, passwordTextBox, testButton, okButton, cancelButton
-            });
-            
+
             this.AcceptButton = okButton;
             this.CancelButton = cancelButton;
-            
-            this.ResumeLayout(false);
         }
-        
+
+        private void LayoutControls()
+        {
+            const int labelWidth = 100;
+            const int controlWidth = 200;
+            const int margin = 20;
+            const int rowHeight = 35;
+            int currentY = margin;
+
+            // Server Name
+            serverLabel!.Location = new Point(margin, currentY);
+            serverLabel.Size = new Size(labelWidth, 20);
+            serverNameTextBox!.Location = new Point(margin + labelWidth + 10, currentY);
+            serverNameTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Port
+            portLabel!.Location = new Point(margin, currentY);
+            portLabel.Size = new Size(labelWidth, 20);
+            portNumeric!.Location = new Point(margin + labelWidth + 10, currentY);
+            portNumeric.Size = new Size(100, 20);
+            currentY += rowHeight;
+
+            // Windows Auth checkbox
+            windowsAuthCheckBox!.Location = new Point(margin, currentY);
+            windowsAuthCheckBox.Size = new Size(200, 20);
+            currentY += rowHeight;
+
+            // Username
+            usernameLabel!.Location = new Point(margin, currentY);
+            usernameLabel.Size = new Size(labelWidth, 20);
+            usernameTextBox!.Location = new Point(margin + labelWidth + 10, currentY);
+            usernameTextBox.Size = new Size(controlWidth, 20);
+            currentY += rowHeight;
+
+            // Password
+            passwordLabel!.Location = new Point(margin, currentY);
+            passwordLabel.Size = new Size(labelWidth, 20);
+            passwordTextBox!.Location = new Point(margin + labelWidth + 10, currentY);
+            passwordTextBox.Size = new Size(controlWidth, 20);
+            currentY += 50;
+
+            // Test Connection button
+            testConnectionButton!.Location = new Point(margin, currentY);
+            testConnectionButton.Size = new Size(120, 25);
+            currentY += 40;
+
+            // OK and Cancel buttons
+            okButton!.Location = new Point(margin + controlWidth - 80, currentY);
+            okButton.Size = new Size(75, 25);
+            cancelButton!.Location = new Point(margin + controlWidth + 5, currentY);
+            cancelButton.Size = new Size(75, 25);
+
+            // Add all controls to form
+            this.Controls.AddRange(new Control[]
+            {
+                serverLabel, serverNameTextBox,
+                portLabel, portNumeric,
+                windowsAuthCheckBox,
+                usernameLabel, usernameTextBox,
+                passwordLabel, passwordTextBox,
+                testConnectionButton,
+                okButton, cancelButton
+            });
+        }
+
         private void SetupEventHandlers()
         {
-            windowsAuthCheckBox.CheckedChanged += WindowsAuthCheckBox_CheckedChanged;
-            testButton.Click += TestButton_Click;
-            okButton.Click += OkButton_Click;
+            windowsAuthCheckBox!.CheckedChanged += WindowsAuthCheckBox_CheckedChanged;
+            testConnectionButton!.Click += TestConnectionButton_Click;
+            okButton!.Click += OkButton_Click;
+
+            // Initial state
+            WindowsAuthCheckBox_CheckedChanged(null, EventArgs.Empty);
         }
-        
+
         private void WindowsAuthCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
-            bool useWindowsAuth = windowsAuthCheckBox.Checked;
-            usernameLabel.Enabled = !useWindowsAuth;
-            usernameTextBox.Enabled = !useWindowsAuth;
-            passwordLabel.Enabled = !useWindowsAuth;
-            passwordTextBox.Enabled = !useWindowsAuth;
+            bool useWindows = windowsAuthCheckBox!.Checked;
+            usernameLabel!.Enabled = !useWindows;
+            usernameTextBox!.Enabled = !useWindows;
+            passwordLabel!.Enabled = !useWindows;
+            passwordTextBox!.Enabled = !useWindows;
         }
-        
-        private void TestButton_Click(object? sender, EventArgs e)
+
+        private async void TestConnectionButton_Click(object? sender, EventArgs e)
         {
-            if (ValidateInput())
+            testConnectionButton!.Enabled = false;
+            testConnectionButton.Text = "Testing...";
+
+            try
             {
-                testButton.Enabled = false;
-                testButton.Text = "Testing...";
-                
-                // Simulate connection test
-                Task.Run(async () =>
+                // Create test connection
+                var testConnection = new PIServerConnection
                 {
-                    await Task.Delay(1500);
-                    
-                    this.Invoke(new Action(() =>
-                    {
-                        testButton.Enabled = true;
-                        testButton.Text = "Test Connection";
-                        
-                        MessageBox.Show("Connection test successful!", "Test Result",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }));
-                });
+                    ServerName = serverNameTextBox!.Text.Trim(),
+                    Port = (int)portNumeric!.Value,
+                    Username = usernameTextBox!.Text.Trim(),
+                    Password = passwordTextBox!.Text,
+                    UseWindowsAuthentication = windowsAuthCheckBox!.Checked
+                };
+
+                // Test with real PI server manager
+                var realManager = new Services.RealPIServerManager();
+                bool success = await realManager.ConnectAsync(testConnection.ServerName, 
+                    testConnection.Username, testConnection.Password);
+
+                if (success)
+                {
+                    MessageBox.Show("✓ Connection successful!\nReal PI Server detected.", "Test Connection",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("⚠ Connection failed.\nServer not reachable or no PI System detected.", "Test Connection",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                realManager.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Connection test failed:\n{ex.Message}", "Test Connection",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                testConnectionButton!.Enabled = true;
+                testConnectionButton.Text = "Test Connection";
             }
         }
-        
+
         private void OkButton_Click(object? sender, EventArgs e)
         {
-            if (!ValidateInput())
-            {
-                return;
-            }
-
-            // Create the connection object with user input
-            Connection = new PIServerConnection
-            {
-                ServerName = serverTextBox.Text.Trim(),
-                Port = int.TryParse(portTextBox.Text, out int port) ? port : 5450,
-                Username = windowsAuthCheckBox.Checked ? "" : usernameTextBox.Text.Trim(),
-                Password = windowsAuthCheckBox.Checked ? "" : passwordTextBox.Text,
-                UseWindowsAuthentication = windowsAuthCheckBox.Checked
-            };
-
-            DialogResult = DialogResult.OK;
-            Close();
-        }
-        
-        private bool ValidateInput()
-        {
-            if (string.IsNullOrWhiteSpace(serverTextBox.Text))
+            if (string.IsNullOrWhiteSpace(serverNameTextBox!.Text))
             {
                 MessageBox.Show("Please enter a server name.", "Validation Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                serverTextBox.Focus();
-                return false;
+                serverNameTextBox.Focus();
+                return;
             }
-            
-            if (!int.TryParse(portTextBox.Text, out int port) || port <= 0 || port > 65535)
+
+            // Create the connection object
+            Connection = new PIServerConnection
             {
-                MessageBox.Show("Please enter a valid port number (1-65535).", "Validation Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                portTextBox.Focus();
-                return false;
-            }
-            
-            if (!windowsAuthCheckBox.Checked)
-            {
-                if (string.IsNullOrWhiteSpace(usernameTextBox.Text))
-                {
-                    MessageBox.Show("Please enter a username.", "Validation Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    usernameTextBox.Focus();
-                    return false;
-                }
-            }
-            
-            return true;
+                ServerName = serverNameTextBox.Text.Trim(),
+                Port = (int)portNumeric!.Value,
+                Username = usernameTextBox!.Text.Trim(),
+                Password = passwordTextBox!.Text,
+                UseWindowsAuthentication = windowsAuthCheckBox!.Checked
+            };
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
     }
 } 

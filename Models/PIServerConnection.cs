@@ -16,6 +16,7 @@ namespace PIInterfaceConfigUtility.Models
         private DateTime _lastConnected = DateTime.MinValue;
         private string _description = "";
         private string _serverVersion = "";
+        private bool _useWindowsAuthentication = true;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -147,9 +148,41 @@ namespace PIInterfaceConfigUtility.Models
             }
         }
 
+        /// <summary>
+        /// Whether to use Windows Authentication
+        /// </summary>
+        public bool UseWindowsAuthentication
+        {
+            get => _useWindowsAuthentication;
+            set
+            {
+                if (_useWindowsAuthentication != value)
+                {
+                    _useWindowsAuthentication = value;
+                    OnPropertyChanged(nameof(UseWindowsAuthentication));
+                }
+            }
+        }
+
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // Constructors for compatibility
+        public PIServerConnection()
+        {
+        }
+
+        public PIServerConnection(string serverName)
+        {
+            ServerName = serverName;
+        }
+
+        public PIServerConnection(string serverName, int port)
+        {
+            ServerName = serverName;
+            Port = port;
         }
 
         public override string ToString()

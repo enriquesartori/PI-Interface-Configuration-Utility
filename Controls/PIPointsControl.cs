@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using PIInterfaceConfigUtility.Models;
 using PIInterfaceConfigUtility.Services;
+using PIInterfaceConfigUtility.Dialogs;
 
 namespace PIInterfaceConfigUtility
 {
