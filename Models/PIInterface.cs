@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using PIInterfaceConfigUtility.Models;
 
 namespace PIInterfaceConfigUtility.Models
 {
@@ -20,6 +22,8 @@ namespace PIInterfaceConfigUtility.Models
         private int _pointsCount = 0;
         private double _updateRate = 0.0;
         private DateTime _lastUpdate = DateTime.Now;
+        private DateTime _lastStarted = DateTime.MinValue;
+        private DateTime _lastStopped = DateTime.MinValue;
         private TimeSpan _uptime = TimeSpan.Zero;
         private double _cpuUsage = 0.0;
         private double _memoryUsage = 0.0;
@@ -28,7 +32,23 @@ namespace PIInterfaceConfigUtility.Models
         private long _totalEvents = 0;
         private double _eventsPerSecond = 0.0;
 
+        // Collections
+        private List<PIPoint> _points = new();
+        private Dictionary<string, object> _properties = new();
+
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        // Constructors
+        public PIInterface()
+        {
+        }
+
+        public PIInterface(string name, InterfaceType type)
+        {
+            _name = name;
+            _type = type;
+            _serviceName = $"PI-{name}";
+        }
 
         /// <summary>
         /// Interface name
@@ -223,6 +243,38 @@ namespace PIInterfaceConfigUtility.Models
         }
 
         /// <summary>
+        /// When the interface was last started
+        /// </summary>
+        public DateTime LastStarted
+        {
+            get => _lastStarted;
+            set
+            {
+                if (_lastStarted != value)
+                {
+                    _lastStarted = value;
+                    OnPropertyChanged(nameof(LastStarted));
+                }
+            }
+        }
+
+        /// <summary>
+        /// When the interface was last stopped
+        /// </summary>
+        public DateTime LastStopped
+        {
+            get => _lastStopped;
+            set
+            {
+                if (_lastStopped != value)
+                {
+                    _lastStopped = value;
+                    OnPropertyChanged(nameof(LastStopped));
+                }
+            }
+        }
+
+        /// <summary>
         /// Interface uptime
         /// </summary>
         public TimeSpan Uptime
@@ -332,6 +384,53 @@ namespace PIInterfaceConfigUtility.Models
                     OnPropertyChanged(nameof(EventsPerSecond));
                 }
             }
+        }
+
+        /// <summary>
+        /// Collection of PI Points managed by this interface
+        /// </summary>
+        public List<PIPoint> Points
+        {
+            get => _points;
+            set
+            {
+                if (_points != value)
+                {
+                    _points = value ?? new List<PIPoint>();
+                    _pointsCount = _points.Count;
+                    OnPropertyChanged(nameof(Points));
+                    OnPropertyChanged(nameof(PointsCount));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add a custom property to the interface
+        /// </summary>
+        public void AddProperty(string name, object value)
+        {
+            _properties[name] = value;
+            OnPropertyChanged($"Property_{name}");
+        }
+
+        /// <summary>
+        /// Get a custom property value
+        /// </summary>
+        public T? GetProperty<T>(string name)
+        {
+            if (_properties.TryGetValue(name, out var value) && value is T typedValue)
+            {
+                return typedValue;
+            }
+            return default(T);
+        }
+
+        /// <summary>
+        /// Get all custom properties
+        /// </summary>
+        public Dictionary<string, object> GetAllProperties()
+        {
+            return new Dictionary<string, object>(_properties);
         }
 
         protected virtual void OnPropertyChanged(string propertyName)

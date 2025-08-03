@@ -2,388 +2,289 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using PIInterfaceConfigUtility.Models;
 using PIInterfaceConfigUtility.Services;
 using System.Threading.Tasks; // Added missing import for Task
 
-namespace PIInterfaceConfigUtility
+namespace PIInterfaceConfigUtility.Controls
 {
     /// <summary>
     /// User control for managing Windows services related to PI interfaces
     /// </summary>
     public partial class ServiceManagementControl : UserControl
     {
-        private readonly InterfaceManager interfaceManager;
+        // Make all UI controls nullable
+        private DataGridView? servicesGrid;
+        private GroupBox? actionsGroupBox;
+        private Button? startButton;
+        private Button? stopButton;
+        private Button? restartButton;
+        private Button? refreshButton;
         
-        private DataGridView servicesGrid;
-        private GroupBox actionsGroupBox;
-        private Button startButton, stopButton, restartButton, refreshButton;
-        private Button startAllButton, stopAllButton;
-        private Label statusLabel;
-        private ProgressBar operationProgressBar;
+        private InterfaceManager interfaceManager;
 
         public ServiceManagementControl(InterfaceManager manager)
         {
-            interfaceManager = manager ?? throw new ArgumentNullException(nameof(manager));
+            interfaceManager = manager;
             InitializeComponent();
             SetupEventHandlers();
-            RefreshServices();
+            LoadServices();
         }
 
         private void InitializeComponent()
         {
-            SuspendLayout();
+            this.Size = new Size(800, 600);
+            this.BackColor = SystemColors.Control;
 
-            // Main layout
-            Dock = DockStyle.Fill;
-            BackColor = Color.White;
+            CreateControls();
+            LayoutControls();
+        }
 
+        private void CreateControls()
+        {
             // Services grid
             servicesGrid = new DataGridView
             {
-                Location = new Point(12, 12),
-                Size = new Size(600, 300),
-                AutoGenerateColumns = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                MultiSelect = false,
-                ReadOnly = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
-                BorderStyle = BorderStyle.Fixed3D,
-                BackgroundColor = Color.White
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                ReadOnly = true,
+                AutoGenerateColumns = false
             };
 
-            // Setup columns
+            // Add columns
             servicesGrid.Columns.AddRange(new DataGridViewColumn[]
             {
-                new DataGridViewTextBoxColumn { Name = "ServiceName", HeaderText = "Service Name", Width = 150, DataPropertyName = "ServiceName" },
-                new DataGridViewTextBoxColumn { Name = "DisplayName", HeaderText = "Display Name", Width = 200, DataPropertyName = "Name" },
-                new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", Width = 100, DataPropertyName = "Status" },
-                new DataGridViewTextBoxColumn { Name = "StartType", HeaderText = "Start Type", Width = 100, DataPropertyName = "AutoStart" },
-                new DataGridViewTextBoxColumn { Name = "Description", HeaderText = "Description", Width = 200, DataPropertyName = "Description" }
+                new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Interface Name", Width = 150 },
+                new DataGridViewTextBoxColumn { Name = "ServiceName", HeaderText = "Service Name", Width = 150 },
+                new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", Width = 100 },
+                new DataGridViewTextBoxColumn { Name = "Type", HeaderText = "Type", Width = 100 },
+                new DataGridViewTextBoxColumn { Name = "LastStarted", HeaderText = "Last Started", Width = 150 },
+                new DataGridViewTextBoxColumn { Name = "Uptime", HeaderText = "Uptime", Width = 100 }
             });
 
-            // Actions group box
+            // Actions group
             actionsGroupBox = new GroupBox
             {
                 Text = "Service Actions",
-                Location = new Point(630, 12),
-                Size = new Size(150, 300),
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             };
 
-            // Individual service buttons
             startButton = new Button
             {
                 Text = "Start Service",
-                Location = new Point(15, 30),
-                Size = new Size(120, 30),
-                BackColor = Color.LightGreen,
-                Enabled = false
+                BackColor = Color.FromArgb(76, 175, 80),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
             };
 
             stopButton = new Button
             {
                 Text = "Stop Service",
-                Location = new Point(15, 70),
-                Size = new Size(120, 30),
-                BackColor = Color.LightCoral,
-                Enabled = false
+                BackColor = Color.FromArgb(244, 67, 54),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
             };
 
             restartButton = new Button
             {
                 Text = "Restart Service",
-                Location = new Point(15, 110),
-                Size = new Size(120, 30),
-                BackColor = Color.LightBlue,
-                Enabled = false
-            };
-
-            // Batch operations
-            startAllButton = new Button
-            {
-                Text = "Start All",
-                Location = new Point(15, 160),
-                Size = new Size(120, 30),
-                BackColor = Color.PaleGreen
-            };
-
-            stopAllButton = new Button
-            {
-                Text = "Stop All",
-                Location = new Point(15, 200),
-                Size = new Size(120, 30),
-                BackColor = Color.MistyRose
+                BackColor = Color.FromArgb(255, 152, 0),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
             };
 
             refreshButton = new Button
             {
                 Text = "Refresh",
-                Location = new Point(15, 250),
-                Size = new Size(120, 30),
-                BackColor = Color.LightYellow
+                BackColor = Color.FromArgb(33, 150, 243),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
             };
+        }
 
-            actionsGroupBox.Controls.AddRange(new Control[] {
-                startButton, stopButton, restartButton,
-                startAllButton, stopAllButton, refreshButton
+        private void LayoutControls()
+        {
+            const int margin = 10;
+            const int buttonWidth = 120;
+            const int buttonHeight = 30;
+
+            // Services grid
+            servicesGrid!.Location = new Point(margin, margin);
+            servicesGrid.Size = new Size(this.Width - 2 * margin, this.Height - 150);
+            servicesGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+
+            // Actions group
+            actionsGroupBox!.Location = new Point(margin, this.Height - 120);
+            actionsGroupBox.Size = new Size(this.Width - 2 * margin, 100);
+            actionsGroupBox.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            // Buttons inside group
+            int buttonY = 25;
+            startButton!.Location = new Point(15, buttonY);
+            startButton.Size = new Size(buttonWidth, buttonHeight);
+
+            stopButton!.Location = new Point(15 + buttonWidth + 10, buttonY);
+            stopButton.Size = new Size(buttonWidth, buttonHeight);
+
+            restartButton!.Location = new Point(15 + 2 * (buttonWidth + 10), buttonY);
+            restartButton.Size = new Size(buttonWidth, buttonHeight);
+
+            refreshButton!.Location = new Point(15 + 3 * (buttonWidth + 10), buttonY);
+            refreshButton.Size = new Size(buttonWidth, buttonHeight);
+
+            // Add controls to group
+            actionsGroupBox.Controls.AddRange(new Control[]
+            {
+                startButton, stopButton, restartButton, refreshButton
             });
 
-            // Status area
-            statusLabel = new Label
+            // Add controls to form
+            this.Controls.AddRange(new Control[]
             {
-                Text = "Ready",
-                Location = new Point(12, 330),
-                Size = new Size(400, 20),
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-            };
-
-            operationProgressBar = new ProgressBar
-            {
-                Location = new Point(12, 360),
-                Size = new Size(600, 20),
-                Style = ProgressBarStyle.Continuous,
-                Visible = false
-            };
-
-            // Add main controls
-            Controls.AddRange(new Control[] {
-                servicesGrid, actionsGroupBox, statusLabel, operationProgressBar
+                servicesGrid, actionsGroupBox
             });
-
-            ResumeLayout(false);
         }
 
         private void SetupEventHandlers()
         {
-            startButton.Click += StartButton_Click;
-            stopButton.Click += StopButton_Click;
-            restartButton.Click += RestartButton_Click;
-            refreshButton.Click += RefreshButton_Click;
-            startAllButton.Click += StartAllButton_Click;
-            stopAllButton.Click += StopAllButton_Click;
-            
-            servicesGrid.SelectionChanged += ServicesGrid_SelectionChanged;
-            servicesGrid.CellFormatting += ServicesGrid_CellFormatting;
-            
+            startButton!.Click += StartButton_Click;
+            stopButton!.Click += StopButton_Click;
+            restartButton!.Click += RestartButton_Click;
+            refreshButton!.Click += RefreshButton_Click;
+
+            servicesGrid!.SelectionChanged += ServicesGrid_SelectionChanged;
+
+            // Interface manager events
             interfaceManager.InterfaceStatusChanged += InterfaceManager_InterfaceStatusChanged;
+        }
+
+        private void LoadServices()
+        {
+            if (servicesGrid == null) return;
+
+            var interfaces = interfaceManager.Interfaces.Select(i => new
+            {
+                Interface = i,
+                Name = i.Name,
+                ServiceName = i.ServiceName,
+                Status = i.Status.ToString(),
+                Type = i.Type.ToString(),
+                LastStarted = i.LastStarted == DateTime.MinValue ? "Never" : i.LastStarted.ToString("yyyy-MM-dd HH:mm:ss"),
+                Uptime = i.Status == InterfaceStatus.Running ? i.Uptime.ToString(@"dd\.hh\:mm\:ss") : "00.00:00:00"
+            }).ToList();
+
+            servicesGrid.DataSource = interfaces;
+        }
+
+        private void ServicesGrid_SelectionChanged(object? sender, EventArgs e)
+        {
+            bool hasSelection = servicesGrid!.SelectedRows.Count > 0;
+            
+            if (hasSelection)
+            {
+                var selectedRow = servicesGrid.SelectedRows[0];
+                var interfaceItem = selectedRow.DataBoundItem?.GetType().GetProperty("Interface")?.GetValue(selectedRow.DataBoundItem) as PIInterface;
+                
+                if (interfaceItem != null)
+                {
+                    bool isRunning = interfaceItem.Status == InterfaceStatus.Running;
+                    bool isStopped = interfaceItem.Status == InterfaceStatus.Stopped;
+                    
+                    startButton!.Enabled = isStopped;
+                    stopButton!.Enabled = isRunning;
+                    restartButton!.Enabled = isRunning;
+                }
+            }
+            else
+            {
+                startButton!.Enabled = false;
+                stopButton!.Enabled = false;
+                restartButton!.Enabled = false;
+            }
         }
 
         private async void StartButton_Click(object? sender, EventArgs e)
         {
-            if (GetSelectedInterface() is var selectedInterface && selectedInterface != null)
+            var selectedInterface = GetSelectedInterface();
+            if (selectedInterface != null)
             {
-                await PerformServiceOperation($"Starting {selectedInterface.Name}...", async () =>
+                try
                 {
-                    await interfaceManager.StartInterfaceAsync(selectedInterface.Id);
-                });
+                    await interfaceManager.StartInterfaceAsync(selectedInterface.Name);
+                    LoadServices();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error starting interface: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private async void StopButton_Click(object? sender, EventArgs e)
         {
-            if (GetSelectedInterface() is var selectedInterface && selectedInterface != null)
+            var selectedInterface = GetSelectedInterface();
+            if (selectedInterface != null)
             {
-                await PerformServiceOperation($"Stopping {selectedInterface.Name}...", async () =>
+                try
                 {
-                    await interfaceManager.StopInterfaceAsync(selectedInterface.Id);
-                });
+                    await interfaceManager.StopInterfaceAsync(selectedInterface.Name);
+                    LoadServices();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error stopping interface: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private async void RestartButton_Click(object? sender, EventArgs e)
         {
-            if (GetSelectedInterface() is var selectedInterface && selectedInterface != null)
+            var selectedInterface = GetSelectedInterface();
+            if (selectedInterface != null)
             {
-                await PerformServiceOperation($"Restarting {selectedInterface.Name}...", async () =>
+                try
                 {
-                    await interfaceManager.StopInterfaceAsync(selectedInterface.Id);
-                    await Task.Delay(2000); // Wait 2 seconds
-                    await interfaceManager.StartInterfaceAsync(selectedInterface.Id);
-                });
+                    await interfaceManager.StopInterfaceAsync(selectedInterface.Name);
+                    await Task.Delay(2000); // Wait for clean shutdown
+                    await interfaceManager.StartInterfaceAsync(selectedInterface.Name);
+                    LoadServices();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error restarting interface: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private void RefreshButton_Click(object? sender, EventArgs e)
         {
-            RefreshServices();
+            LoadServices();
         }
 
-        private async void StartAllButton_Click(object? sender, EventArgs e)
+        private PIInterface? GetSelectedInterface()
         {
-            var interfaces = interfaceManager.Interfaces
-                .Where(i => i.Status != Models.InterfaceStatus.Running)
-                .ToList();
+            if (servicesGrid!.SelectedRows.Count == 0)
+                return null;
 
-            if (interfaces.Any())
-            {
-                await PerformBatchOperation("Starting all interfaces...", interfaces, 
-                    async (iface) => await interfaceManager.StartInterfaceAsync(iface.Name));
-            }
+            var selectedRow = servicesGrid.SelectedRows[0];
+            return selectedRow.DataBoundItem?.GetType().GetProperty("Interface")?.GetValue(selectedRow.DataBoundItem) as PIInterface;
         }
 
-        private async void StopAllButton_Click(object? sender, EventArgs e)
+        private void InterfaceManager_InterfaceStatusChanged(object? sender, PIInterface e)
         {
-            var interfaces = interfaceManager.Interfaces
-                .Where(i => i.Status == Models.InterfaceStatus.Running)
-                .ToList();
-
-            if (interfaces.Any())
+            // Update the grid when interface status changes
+            if (this.InvokeRequired)
             {
-                await PerformBatchOperation("Stopping all interfaces...", interfaces,
-                    async (iface) => await interfaceManager.StopInterfaceAsync(iface.Name));
+                this.Invoke(new Action(() => LoadServices()));
             }
-        }
-
-        private void ServicesGrid_SelectionChanged(object? sender, EventArgs e)
-        {
-            var selectedInterface = GetSelectedInterface();
-            bool hasSelection = selectedInterface != null;
-            
-            startButton.Enabled = hasSelection && selectedInterface?.Status != Models.InterfaceStatus.Running;
-            stopButton.Enabled = hasSelection && selectedInterface?.Status == Models.InterfaceStatus.Running;
-            restartButton.Enabled = hasSelection;
-        }
-
-        private void ServicesGrid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.ColumnIndex == servicesGrid.Columns["Status"].Index && e.Value != null)
+            else
             {
-                var status = e.Value.ToString();
-                e.CellStyle.ForeColor = status switch
-                {
-                    "Running" => Color.Green,
-                    "Stopped" => Color.Red,
-                    "Starting" => Color.Orange,
-                    "Stopping" => Color.Orange,
-                    "Error" => Color.DarkRed,
-                    _ => Color.Black
-                };
-                e.CellStyle.Font = new Font(e.CellStyle.Font!, FontStyle.Bold);
+                LoadServices();
             }
-        }
-
-        private void InterfaceManager_InterfaceStatusChanged(object? sender, PIInterfaceConfigUtility.Models.PIInterface e)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => RefreshServices()));
-                return;
-            }
-            
-            RefreshServices();
-        }
-
-        private Models.PIInterface? GetSelectedInterface()
-        {
-            if (servicesGrid.SelectedRows.Count > 0)
-            {
-                return servicesGrid.SelectedRows[0].DataBoundItem as Models.PIInterface;
-            }
-            return null;
-        }
-
-        private void RefreshServices()
-        {
-            var interfaces = interfaceManager.Interfaces.ToList();
-            
-            servicesGrid!.DataSource = interfaces;
-            
-            statusLabel!.Text = $"Found {interfaces.Count} PI interfaces";
-            statusLabel.ForeColor = Color.Black;
-        }
-
-        private async Task PerformServiceOperation(string operationText, Func<Task> operation)
-        {
-            try
-            {
-                statusLabel.Text = operationText;
-                statusLabel.ForeColor = Color.Blue;
-                
-                SetButtonsEnabled(false);
-                
-                await operation();
-                
-                statusLabel.Text = "Operation completed successfully";
-                statusLabel.ForeColor = Color.Green;
-                
-                RefreshServices();
-            }
-            catch (Exception ex)
-            {
-                statusLabel.Text = $"Operation failed: {ex.Message}";
-                statusLabel.ForeColor = Color.Red;
-                
-                MessageBox.Show($"Service operation failed: {ex.Message}", "Service Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                SetButtonsEnabled(true);
-            }
-        }
-
-        private async Task PerformBatchOperation(string operationText, 
-            System.Collections.Generic.List<Models.PIInterface> interfaces, 
-            Func<Models.PIInterface, Task> operation)
-        {
-            try
-            {
-                statusLabel.Text = operationText;
-                statusLabel.ForeColor = Color.Blue;
-                
-                SetButtonsEnabled(false);
-                operationProgressBar.Visible = true;
-                operationProgressBar.Maximum = interfaces.Count;
-                operationProgressBar.Value = 0;
-                
-                for (int i = 0; i < interfaces.Count; i++)
-                {
-                    var iface = interfaces[i];
-                    statusLabel.Text = $"{operationText} ({i + 1}/{interfaces.Count}) - {iface.Name}";
-                    
-                    try
-                    {
-                        await operation(iface);
-                        await Task.Delay(500); // Small delay between operations
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log individual failures but continue with batch
-                        System.Diagnostics.Debug.WriteLine($"Failed to process {iface.Name}: {ex.Message}");
-                    }
-                    
-                    operationProgressBar.Value = i + 1;
-                }
-                
-                statusLabel.Text = "Batch operation completed";
-                statusLabel.ForeColor = Color.Green;
-                
-                RefreshServices();
-            }
-            catch (Exception ex)
-            {
-                statusLabel.Text = $"Batch operation failed: {ex.Message}";
-                statusLabel.ForeColor = Color.Red;
-                
-                MessageBox.Show($"Batch operation failed: {ex.Message}", "Batch Operation Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                SetButtonsEnabled(true);
-                operationProgressBar.Visible = false;
-            }
-        }
-
-        private void SetButtonsEnabled(bool enabled)
-        {
-            startButton.Enabled = enabled;
-            stopButton.Enabled = enabled;
-            restartButton.Enabled = enabled;
-            startAllButton.Enabled = enabled;
-            stopAllButton.Enabled = enabled;
-            refreshButton.Enabled = enabled;
         }
     }
 } 

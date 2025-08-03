@@ -223,30 +223,22 @@ namespace PIInterfaceConfigUtility.Services
             // Set default properties based on interface type
             switch (type)
             {
-                case InterfaceType.OPC_DA:
-                    piInterface.AddProperty("ProgID", "Matrikon.OPC.Server.1");
-                    piInterface.AddProperty("UpdateRate", "1000");
-                    piInterface.AddProperty("GroupSize", "100");
+                case InterfaceType.OPCDA:
+                    piInterface.AddProperty("OPCServer", "Matrikon.OPC.Simulation.1");
+                    piInterface.AddProperty("GroupUpdateRate", 1000);
+                    piInterface.AddProperty("ConnectionTimeout", 30);
                     break;
-                    
-                case InterfaceType.OPC_UA:
-                    piInterface.AddProperty("EndpointUrl", "opc.tcp://localhost:49320");
-                    piInterface.AddProperty("SecurityPolicy", "None");
-                    piInterface.AddProperty("MessageEncoding", "Binary");
+                case InterfaceType.OPCAE:
+                    piInterface.AddProperty("OPCAEServer", "Matrikon.OPC.AlarmEvent.1");
+                    piInterface.AddProperty("SubscriptionRate", 500);
                     break;
-                    
-                case InterfaceType.Modbus:
-                    piInterface.SourcePort = 502;
-                    piInterface.AddProperty("SlaveId", "1");
-                    piInterface.AddProperty("Timeout", "5000");
-                    piInterface.AddProperty("Retries", "3");
+                case InterfaceType.PIPing:
+                    piInterface.AddProperty("PointSource", "PING");
+                    piInterface.AddProperty("ScanFrequency", 30000);
                     break;
-                    
-                case InterfaceType.DNP3:
-                    piInterface.SourcePort = 20000;
-                    piInterface.AddProperty("MasterAddress", "1");
-                    piInterface.AddProperty("OutstationAddress", "10");
-                    piInterface.AddProperty("IntegrityPeriod", "60");
+                case InterfaceType.UFL:
+                    piInterface.AddProperty("InputDirectory", @"C:\PI\Interfaces\UFL\Input");
+                    piInterface.AddProperty("ProcessedDirectory", @"C:\PI\Interfaces\UFL\Processed");
                     break;
             }
             
