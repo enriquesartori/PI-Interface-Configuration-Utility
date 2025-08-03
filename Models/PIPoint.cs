@@ -19,7 +19,8 @@ namespace PIInterfaceConfigUtility.Models
         private DateTime _lastUpdateTime = DateTime.Now;
         private string _lastUpdateTimeString = "";
         private int _scanIntervalMs = 5000; // Store as milliseconds
-        private object? _currentValue;
+        private object? _currentValue = null;
+        private string _currentValueString = "";
         private PIPointStatus _status = PIPointStatus.Unknown;
         private string _interfaceName = "";
         private string _digitalStates = "";
@@ -277,6 +278,32 @@ namespace PIInterfaceConfigUtility.Models
                     OnPropertyChanged(nameof(Status));
                 }
             }
+        }
+
+        /// <summary>
+        /// Current value of the PI Point
+        /// </summary>
+        public object? CurrentValue
+        {
+            get => _currentValue;
+            set
+            {
+                if (_currentValue != value)
+                {
+                    _currentValue = value;
+                    _currentValueString = value?.ToString() ?? "";
+                    OnPropertyChanged(nameof(CurrentValue));
+                    OnPropertyChanged(nameof(CurrentValueString));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Current value as formatted string
+        /// </summary>
+        public string CurrentValueString
+        {
+            get => _currentValueString;
         }
 
         /// <summary>
@@ -554,10 +581,33 @@ namespace PIInterfaceConfigUtility.Models
         }
 
         /// <summary>
-        /// Gets the formatted value for display
+        /// Get formatted value for display
         /// </summary>
         public string GetFormattedValue()
         {
+            if (CurrentValue == null)
+                return "No Value";
+
+            switch (DataType)
+            {
+                case PIPointDataType.Float32:
+                case PIPointDataType.Float64:
+                    if (CurrentValue is double d)
+                        return d.ToString("F3");
+                    break;
+                case PIPointDataType.Int16:
+                case PIPointDataType.Int32:
+                    if (CurrentValue is int i)
+                        return i.ToString();
+                    break;
+                case PIPointDataType.String:
+                    return CurrentValueString;
+                case PIPointDataType.Digital:
+                    if (CurrentValue is bool b)
+                        return b ? "ON" : "OFF";
+                    break;
+            }
+
             return CurrentValueString;
         }
 

@@ -1,21 +1,368 @@
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace PIInterfaceConfigUtility.Models
 {
+    /// <summary>
+    /// Represents a PI Interface with its configuration and status
+    /// </summary>
+    public class PIInterface : INotifyPropertyChanged
+    {
+        private string _name = "";
+        private InterfaceType _type = InterfaceType.PIPing;
+        private InterfaceStatus _status = InterfaceStatus.Stopped;
+        private string _serviceName = "";
+        private string _description = "";
+        private string _version = "";
+        private string _configFilePath = "";
+        private string _logFilePath = "";
+        private bool _isEnabled = true;
+        private int _pointsCount = 0;
+        private double _updateRate = 0.0;
+        private DateTime _lastUpdate = DateTime.Now;
+        private TimeSpan _uptime = TimeSpan.Zero;
+        private double _cpuUsage = 0.0;
+        private double _memoryUsage = 0.0;
+        private int _goodPoints = 0;
+        private int _badPoints = 0;
+        private long _totalEvents = 0;
+        private double _eventsPerSecond = 0.0;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Interface name
+        /// </summary>
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (_name != value)
+                {
+                    _name = value;
+                    OnPropertyChanged(nameof(Name));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Interface type
+        /// </summary>
+        public InterfaceType Type
+        {
+            get => _type;
+            set
+            {
+                if (_type != value)
+                {
+                    _type = value;
+                    OnPropertyChanged(nameof(Type));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Current interface status
+        /// </summary>
+        public InterfaceStatus Status
+        {
+            get => _status;
+            set
+            {
+                if (_status != value)
+                {
+                    _status = value;
+                    OnPropertyChanged(nameof(Status));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Windows service name
+        /// </summary>
+        public string ServiceName
+        {
+            get => _serviceName;
+            set
+            {
+                if (_serviceName != value)
+                {
+                    _serviceName = value;
+                    OnPropertyChanged(nameof(ServiceName));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Interface description
+        /// </summary>
+        public string Description
+        {
+            get => _description;
+            set
+            {
+                if (_description != value)
+                {
+                    _description = value;
+                    OnPropertyChanged(nameof(Description));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Interface version
+        /// </summary>
+        public string Version
+        {
+            get => _version;
+            set
+            {
+                if (_version != value)
+                {
+                    _version = value;
+                    OnPropertyChanged(nameof(Version));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Configuration file path
+        /// </summary>
+        public string ConfigFilePath
+        {
+            get => _configFilePath;
+            set
+            {
+                if (_configFilePath != value)
+                {
+                    _configFilePath = value;
+                    OnPropertyChanged(nameof(ConfigFilePath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Log file path
+        /// </summary>
+        public string LogFilePath
+        {
+            get => _logFilePath;
+            set
+            {
+                if (_logFilePath != value)
+                {
+                    _logFilePath = value;
+                    OnPropertyChanged(nameof(LogFilePath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the interface is enabled
+        /// </summary>
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled != value)
+                {
+                    _isEnabled = value;
+                    OnPropertyChanged(nameof(IsEnabled));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of points managed by this interface
+        /// </summary>
+        public int PointsCount
+        {
+            get => _pointsCount;
+            set
+            {
+                if (_pointsCount != value)
+                {
+                    _pointsCount = value;
+                    OnPropertyChanged(nameof(PointsCount));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update rate in updates per second
+        /// </summary>
+        public double UpdateRate
+        {
+            get => _updateRate;
+            set
+            {
+                if (Math.Abs(_updateRate - value) > 0.001)
+                {
+                    _updateRate = value;
+                    OnPropertyChanged(nameof(UpdateRate));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Last update timestamp
+        /// </summary>
+        public DateTime LastUpdate
+        {
+            get => _lastUpdate;
+            set
+            {
+                if (_lastUpdate != value)
+                {
+                    _lastUpdate = value;
+                    OnPropertyChanged(nameof(LastUpdate));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Interface uptime
+        /// </summary>
+        public TimeSpan Uptime
+        {
+            get => _uptime;
+            set
+            {
+                if (_uptime != value)
+                {
+                    _uptime = value;
+                    OnPropertyChanged(nameof(Uptime));
+                }
+            }
+        }
+
+        /// <summary>
+        /// CPU usage percentage
+        /// </summary>
+        public double CpuUsage
+        {
+            get => _cpuUsage;
+            set
+            {
+                if (Math.Abs(_cpuUsage - value) > 0.001)
+                {
+                    _cpuUsage = value;
+                    OnPropertyChanged(nameof(CpuUsage));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Memory usage in MB
+        /// </summary>
+        public double MemoryUsage
+        {
+            get => _memoryUsage;
+            set
+            {
+                if (Math.Abs(_memoryUsage - value) > 0.001)
+                {
+                    _memoryUsage = value;
+                    OnPropertyChanged(nameof(MemoryUsage));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of points with good status
+        /// </summary>
+        public int GoodPoints
+        {
+            get => _goodPoints;
+            set
+            {
+                if (_goodPoints != value)
+                {
+                    _goodPoints = value;
+                    OnPropertyChanged(nameof(GoodPoints));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of points with bad status
+        /// </summary>
+        public int BadPoints
+        {
+            get => _badPoints;
+            set
+            {
+                if (_badPoints != value)
+                {
+                    _badPoints = value;
+                    OnPropertyChanged(nameof(BadPoints));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Total number of events processed
+        /// </summary>
+        public long TotalEvents
+        {
+            get => _totalEvents;
+            set
+            {
+                if (_totalEvents != value)
+                {
+                    _totalEvents = value;
+                    OnPropertyChanged(nameof(TotalEvents));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Events per second rate
+        /// </summary>
+        public double EventsPerSecond
+        {
+            get => _eventsPerSecond;
+            set
+            {
+                if (Math.Abs(_eventsPerSecond - value) > 0.001)
+                {
+                    _eventsPerSecond = value;
+                    OnPropertyChanged(nameof(EventsPerSecond));
+                }
+            }
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} ({Type}) - {Status}";
+        }
+    }
+
+    /// <summary>
+    /// PI Interface types
+    /// </summary>
     public enum InterfaceType
     {
-        OPC_DA,
-        OPC_UA,
-        Modbus,
-        DNP3,
-        BACnet,
-        SNMP,
-        Database,
-        FileSystem,
+        PIPing,
+        OPCDA,
+        Perfmon,
+        UFL,
+        RDBMS,
+        OPCAE,
+        UniInt,
         Custom
     }
-    
+
+    /// <summary>
+    /// PI Interface status
+    /// </summary>
     public enum InterfaceStatus
     {
         Stopped,
@@ -24,63 +371,5 @@ namespace PIInterfaceConfigUtility.Models
         Stopping,
         Error,
         Unknown
-    }
-    
-    public class PIInterface
-    {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public InterfaceType Type { get; set; } = InterfaceType.OPC_DA;
-        public InterfaceStatus Status { get; set; } = InterfaceStatus.Stopped;
-        public string ServiceName { get; set; } = string.Empty;
-        public string ExecutablePath { get; set; } = string.Empty;
-        public string ConfigurationPath { get; set; } = string.Empty;
-        public string ConfigFilePath { get; set; } = string.Empty;
-        public string LogFilePath { get; set; } = string.Empty;
-        public bool IsEnabled { get; set; } = true;
-        public bool AutoStart { get; set; } = false;
-        public int ScanInterval { get; set; } = 1000; // milliseconds
-        public DateTime? LastStarted { get; set; }
-        public DateTime? LastStopped { get; set; }
-        public long MessagesReceived { get; set; } = 0;
-        public long MessagesSent { get; set; } = 0;
-        public long ErrorCount { get; set; } = 0;
-        public Dictionary<string, string> Properties { get; set; } = new();
-        public List<PIPoint> Points { get; set; } = new();
-        
-        // Connection settings
-        public string SourceAddress { get; set; } = string.Empty;
-        public int SourcePort { get; set; } = 0;
-        public string SourceUsername { get; set; } = string.Empty;
-        public string SourcePassword { get; set; } = string.Empty;
-        
-        // PI Server settings
-        public string PIServerName { get; set; } = string.Empty;
-        public string PIPointPrefix { get; set; } = string.Empty;
-        
-        public PIInterface() { }
-        
-        public PIInterface(string name, InterfaceType type)
-        {
-            Name = name;
-            Type = type;
-            ServiceName = $"PI_{Name.Replace(" ", "_")}";
-        }
-        
-        public void AddProperty(string key, string value)
-        {
-            Properties[key] = value;
-        }
-        
-        public string GetProperty(string key, string defaultValue = "")
-        {
-            return Properties.TryGetValue(key, out var value) ? value : defaultValue;
-        }
-        
-        public override string ToString()
-        {
-            return $"{Name} ({Type}) - {Status}";
-        }
     }
 } 
