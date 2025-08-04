@@ -271,12 +271,11 @@ namespace PIInterfaceConfigUtility.Services
                 ["MessagesReceived"] = piInterface.MessagesReceived,
                 ["MessagesSent"] = piInterface.MessagesSent,
                 ["ErrorCount"] = piInterface.ErrorCount,
-                ["LastStarted"] = piInterface.LastStarted?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never",
-                ["LastStopped"] = piInterface.LastStopped?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never",
+                ["LastStarted"] = piInterface.LastStarted == DateTime.MinValue ? "Never" : piInterface.LastStarted.ToString("yyyy-MM-dd HH:mm:ss"),
+                ["LastStopped"] = piInterface.LastStopped == DateTime.MinValue ? "Never" : piInterface.LastStopped.ToString("yyyy-MM-dd HH:mm:ss"),
                 ["PointCount"] = piInterface.Points.Count,
                 ["ActivePoints"] = piInterface.Points.Count(p => p.Enabled),
-                ["Uptime"] = piInterface.LastStarted.HasValue ? 
-                    DateTime.Now - piInterface.LastStarted.Value : TimeSpan.Zero
+                ["Uptime"] = piInterface.LastStarted == DateTime.MinValue ? TimeSpan.Zero : DateTime.Now - piInterface.LastStarted
             };
             
             return stats;

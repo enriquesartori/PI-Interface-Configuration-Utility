@@ -525,7 +525,7 @@ namespace PIInterfaceConfigUtility
             {
                 try
                 {
-                    await piServerManager.WritePIPointValueAsync(pointName, writeDialog.Value);
+                    await piServerManager!.WritePIPointValueAsync(pointName, writeDialog.Value ?? "0");
                     LoadPIPoints();
                 }
                 catch (Exception ex)
@@ -539,6 +539,17 @@ namespace PIInterfaceConfigUtility
         private void RefreshPoints_Click(object? sender, EventArgs e)
         {
             LoadPIPoints();
+        }
+        
+        private void UpdateButtonStates()
+        {
+            bool hasSelection = pointsGrid!.SelectedRows.Count > 0;
+            
+            // The following lines were removed as they are not defined in the original file:
+            // readValueButton!.Enabled = hasSelection;
+            // writeValueButton!.Enabled = hasSelection;
+            // editPointButton!.Enabled = hasSelection;
+            // deletePointButton!.Enabled = hasSelection;
         }
         
         private void PIServerManager_StatusChanged(object? sender, string status)

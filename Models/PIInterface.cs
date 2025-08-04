@@ -36,6 +36,12 @@ namespace PIInterfaceConfigUtility.Models
         private List<PIPoint> _points = new();
         private Dictionary<string, object> _properties = new();
 
+        // Additional tracking properties
+        private string _id = Guid.NewGuid().ToString();
+        private long _messagesReceived = 0;
+        private long _messagesSent = 0;
+        private int _errorCount = 0;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         // Constructors
@@ -48,6 +54,22 @@ namespace PIInterfaceConfigUtility.Models
             _name = name;
             _type = type;
             _serviceName = $"PI-{name}";
+        }
+
+        /// <summary>
+        /// Unique interface identifier
+        /// </summary>
+        public string Id
+        {
+            get => _id;
+            set
+            {
+                if (_id != value)
+                {
+                    _id = value;
+                    OnPropertyChanged(nameof(Id));
+                }
+            }
         }
 
         /// <summary>
@@ -382,6 +404,54 @@ namespace PIInterfaceConfigUtility.Models
                 {
                     _eventsPerSecond = value;
                     OnPropertyChanged(nameof(EventsPerSecond));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of messages received by the interface
+        /// </summary>
+        public long MessagesReceived
+        {
+            get => _messagesReceived;
+            set
+            {
+                if (_messagesReceived != value)
+                {
+                    _messagesReceived = value;
+                    OnPropertyChanged(nameof(MessagesReceived));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of messages sent by the interface
+        /// </summary>
+        public long MessagesSent
+        {
+            get => _messagesSent;
+            set
+            {
+                if (_messagesSent != value)
+                {
+                    _messagesSent = value;
+                    OnPropertyChanged(nameof(MessagesSent));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of errors encountered
+        /// </summary>
+        public int ErrorCount
+        {
+            get => _errorCount;
+            set
+            {
+                if (_errorCount != value)
+                {
+                    _errorCount = value;
+                    OnPropertyChanged(nameof(ErrorCount));
                 }
             }
         }

@@ -215,12 +215,17 @@ namespace PIInterfaceConfigUtility.Dialogs
 
         private void OkButton_Click(object? sender, EventArgs e)
         {
-            if (ValidateInput())
-            {
-                SaveChanges();
-                DialogResult = DialogResult.OK;
-                Close();
-            }
+            // Update interface with form values
+            _interface.Name = _nameTextBox!.Text;
+            _interface.Type = (InterfaceType)_typeComboBox!.SelectedItem!;
+            _interface.Description = _descriptionTextBox!.Text;
+            _interface.ServiceName = _serviceNameTextBox!.Text;
+            _interface.ConfigFilePath = _configFilePathTextBox!.Text;
+            _interface.LogFilePath = _logFilePathTextBox!.Text;
+            _interface.IsEnabled = _enabledCheckBox!.Checked;
+
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         private bool ValidateInput()
