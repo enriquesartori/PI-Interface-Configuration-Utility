@@ -452,9 +452,9 @@ namespace PIInterfaceConfigUtility.Controls
 
             timeoutDurationNumeric = new NumericUpDown
             {
-                Value = 3,
                 Minimum = 1,
                 Maximum = 999,
+                Value = 3,
                 Location = new Point(220, 48),
                 Size = new Size(60, 20)
             };
@@ -471,9 +471,9 @@ namespace PIInterfaceConfigUtility.Controls
 
             threadCountNumeric = new NumericUpDown
             {
-                Value = 10,
                 Minimum = 1,
-                Maximum = 100,
+                Maximum = 500,
+                Value = 10,
                 Location = new Point(220, 78),
                 Size = new Size(60, 20)
             };
@@ -873,11 +873,11 @@ namespace PIInterfaceConfigUtility.Controls
         {
             var controls = new[]
             {
-                ("Maximum stop time(sec.):", maxStopTimeNumeric = new NumericUpDown { Value = 120, Maximum = 9999 }, new Button { Text = "Reset" }),
-                ("Startup delay (sec.):", startupDelayNumeric = new NumericUpDown { Value = 30, Maximum = 9999 }, new Button { Text = "Reset" }),
-                ("Point update interval (sec.):", pointUpdateIntervalNumeric = new NumericUpDown { Value = 120, Maximum = 9999 }, new Button { Text = "Reset" }),
-                ("Service events per second (ms):", serviceEventsNumeric = new NumericUpDown { Value = 500, Maximum = 9999 }, new Button { Text = "Reset" }),
-                ("Percent Up:", percentUpNumeric = new NumericUpDown { Value = 100, Maximum = 100 }, new Button { Text = "Reset" })
+                ("Maximum stop time(sec.):", maxStopTimeNumeric = new NumericUpDown { Maximum = 9999, Value = 120 }, new Button { Text = "Reset" }),
+                ("Startup delay (sec.):", startupDelayNumeric = new NumericUpDown { Maximum = 9999, Value = 30 }, new Button { Text = "Reset" }),
+                ("Point update interval (sec.):", pointUpdateIntervalNumeric = new NumericUpDown { Maximum = 9999, Value = 120 }, new Button { Text = "Reset" }),
+                ("Service events per second (ms):", serviceEventsNumeric = new NumericUpDown { Maximum = 9999, Value = 500 }, new Button { Text = "Reset" }),
+                ("Percent Up:", percentUpNumeric = new NumericUpDown { Maximum = 100, Value = 100 }, new Button { Text = "Reset" })
             };
 
             for (int i = 0; i < controls.Length; i++)
@@ -1123,10 +1123,10 @@ namespace PIInterfaceConfigUtility.Controls
 
             heartbeatRateNumeric = new NumericUpDown
             {
-                Value = 1000,
                 Minimum = 100,
                 Maximum = 60000,
-                Location = new Point(290, 193),
+                Value = 1000,
+                Location = new Point(220, 138),
                 Size = new Size(80, 20)
             };
             uniIntFailoverTabPage.Controls.Add(heartbeatRateNumeric);
@@ -1239,10 +1239,10 @@ namespace PIInterfaceConfigUtility.Controls
 
             cacheSyncPeriodNumeric = new NumericUpDown
             {
-                Value = 250,
-                Minimum = 1,
+                Minimum = 100,
                 Maximum = 9999,
-                Location = new Point(210, 48),
+                Value = 250,
+                Location = new Point(220, 78),
                 Size = new Size(80, 20)
             };
             uniIntDisconnectedTabPage.Controls.Add(cacheSyncPeriodNumeric);
