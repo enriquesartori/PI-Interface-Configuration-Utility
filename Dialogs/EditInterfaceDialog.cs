@@ -10,16 +10,17 @@ namespace PIInterfaceConfigUtility.Dialogs
     public partial class EditInterfaceDialog : Form
     {
         private PIInterface _interface;
-        private TextBox _nameTextBox;
-        private ComboBox _typeComboBox;
-        private TextBox _descriptionTextBox;
-        private TextBox _serviceNameTextBox;
-        private TextBox _configFilePathTextBox;
-        private TextBox _logFilePathTextBox;
-        private CheckBox _enabledCheckBox;
-        private CheckBox _autoStartCheckBox;
-        private Button _okButton;
-        private Button _cancelButton;
+        // Make all UI controls nullable
+        private TextBox? _nameTextBox;
+        private ComboBox? _typeComboBox;
+        private TextBox? _descriptionTextBox;
+        private TextBox? _serviceNameTextBox;
+        private TextBox? _configFilePathTextBox;
+        private TextBox? _logFilePathTextBox;
+        private CheckBox? _enabledCheckBox;
+        private CheckBox? _autoStartCheckBox;
+        private Button? _okButton;
+        private Button? _cancelButton;
 
         public PIInterface Interface => _interface;
 

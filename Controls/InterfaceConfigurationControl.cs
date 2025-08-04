@@ -264,20 +264,26 @@ namespace PIInterfaceConfigUtility
         
         private void AddInterface_Click(object? sender, EventArgs e)
         {
-            var addDialog = new AddInterfaceDialog();
-            if (addDialog.ShowDialog() == DialogResult.OK)
+            using (var dialog = new AddInterfaceDialog())
             {
-                try
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    var newInterface = interfaceManager.CreateInterface(addDialog.InterfaceName, addDialog.InterfaceType);
-                    newInterface.Description = addDialog.Description;
-                    interfaceManager.AddInterface(newInterface);
-                    LoadInterfaces();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error adding interface: {ex.Message}", "Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        // Use the Interface property from the dialog
+                        var newInterface = dialog.Interface;
+                        
+                        interfaceManager!.AddInterface(newInterface);
+                        LoadInterfaces();
+                        
+                        MessageBox.Show($"Interface '{newInterface.Name}' added successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error adding interface: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
