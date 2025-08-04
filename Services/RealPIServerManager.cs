@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using System.Net;
 using PIInterfaceConfigUtility.Models;
+using System.Linq; // Added for .Any()
 
 namespace PIInterfaceConfigUtility.Services
 {
@@ -78,61 +79,97 @@ namespace PIInterfaceConfigUtility.Services
         }
 
         /// <summary>
-        /// Scan local network for PI Servers
+        /// Scan local network for PI Servers on port 5450
         /// </summary>
         private async Task ScanNetworkForPIServers(List<PIServerConnection> servers)
         {
             try
             {
+                LogMessage("Starting network scan for PI Servers...");
+
                 // Get local network range
                 var localIP = GetLocalIPAddress();
-                if (localIP == null) return;
-
-                var subnet = GetSubnet(localIP);
-                var tasks = new List<Task>();
-
-                // Scan common server IPs in subnet
-                for (int i = 1; i <= 254; i++)
+                if (localIP == null)
                 {
-                    var ip = $"{subnet}.{i}";
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        if (await TestServerConnectivity(ip))
-                        {
-                            lock (servers)
-                            {
-                                if (!servers.Contains(ip))
-                                {
-                                    servers.Add(ip);
-                                }
-                            }
-                        }
-                    }));
-
-                    // Limit concurrent connections
-                    if (tasks.Count >= 20)
-                    {
-                        await Task.WhenAll(tasks);
-                        tasks.Clear();
-                    }
+                    LogMessage("Could not determine local IP address for network scanning.");
+                    return;
                 }
 
-                await Task.WhenAll(tasks);
+                // Extract network range (assuming /24 subnet)
+                var ipParts = localIP.Split('.');
+                if (ipParts.Length != 4)
+                    return;
+
+                var networkBase = $"{ipParts[0]}.{ipParts[1]}.{ipParts[2]}";
+                
+                // Scan common IP ranges (limited to avoid long delays)
+                var scanTasks = new List<Task>();
+                var commonIPs = new[] { "1", "10", "50", "100", "200", "250" };
+                
+                foreach (var lastOctet in commonIPs)
+                {
+                    var targetIP = $"{networkBase}.{lastOctet}";
+                    scanTasks.Add(TestPIServerConnection(targetIP, servers));
+                }
+
+                // Wait for all scans to complete (with timeout)
+                await Task.WhenAll(scanTasks);
+                
+                LogMessage($"Network scan completed. Found {servers.Count} servers via network scan.");
             }
             catch (Exception ex)
             {
-                StatusChanged?.Invoke(this, $"Network scan error: {ex.Message}");
+                LogMessage($"Error during network scanning: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Check Windows registry for known PI Servers
+        /// Test connection to a specific PI Server
+        /// </summary>
+        private async Task TestPIServerConnection(string serverName, List<PIServerConnection> servers)
+        {
+            try
+            {
+                using var tcpClient = new System.Net.Sockets.TcpClient();
+                var connectTask = tcpClient.ConnectAsync(serverName, 5450);
+                
+                if (await Task.WhenAny(connectTask, Task.Delay(2000)) == connectTask)
+                {
+                    if (tcpClient.Connected)
+                    {
+                        var serverConnection = new PIServerConnection(serverName)
+                        {
+                            Description = "Discovered via network scan",
+                            ServerVersion = "Unknown"
+                        };
+                        
+                        lock (servers)
+                        {
+                            if (!servers.Any(s => s.ServerName.Equals(serverName, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                servers.Add(serverConnection);
+                            }
+                        }
+                        
+                        LogMessage($"Found PI Server: {serverName}");
+                    }
+                }
+            }
+            catch
+            {
+                // Connection failed - server not available
+            }
+        }
+
+        /// <summary>
+        /// Check Windows registry for PI Server installations
         /// </summary>
         private void CheckRegistryForPIServers(List<PIServerConnection> servers)
         {
             try
             {
-                // Check common PI System registry locations
+                LogMessage("Checking Windows registry for PI Server installations...");
+
                 var registryPaths = new[]
                 {
                     @"SOFTWARE\PI\PI-API",
@@ -149,21 +186,64 @@ namespace PIInterfaceConfigUtility.Services
                         if (key != null)
                         {
                             var serverName = key.GetValue("ServerName") as string;
-                            if (!string.IsNullOrEmpty(serverName) && !servers.Contains(serverName))
+                            if (!string.IsNullOrEmpty(serverName))
                             {
-                                servers.Add(serverName);
+                                var serverConnection = new PIServerConnection(serverName)
+                                {
+                                    Description = "Found in Windows registry",
+                                    ServerVersion = key.GetValue("Version") as string ?? "Unknown"
+                                };
+                                
+                                if (!servers.Any(s => s.ServerName.Equals(serverName, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    servers.Add(serverConnection);
+                                }
                             }
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Registry key not found or inaccessible
+                        LogMessage($"Error reading registry path {path}: {ex.Message}");
                     }
                 }
+
+                LogMessage($"Registry check completed. Total servers found: {servers.Count}");
             }
             catch (Exception ex)
             {
-                StatusChanged?.Invoke(this, $"Registry check error: {ex.Message}");
+                LogMessage($"Error during registry check: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Check common PI Server names
+        /// </summary>
+        private async Task CheckCommonPIServerNames(List<PIServerConnection> servers)
+        {
+            try
+            {
+                LogMessage("Checking common PI Server names...");
+
+                var commonNames = new[]
+                {
+                    "localhost",
+                    "PISERVER",
+                    "PI-SERVER",
+                    "PISRV",
+                    "PISRV01",
+                    "PIDATA",
+                    "PI-DATA",
+                    Environment.MachineName
+                };
+
+                var tasks = commonNames.Select(name => TestPIServerConnection(name, servers));
+                await Task.WhenAll(tasks);
+
+                LogMessage($"Common names check completed. Total servers found: {servers.Count}");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error during common names check: {ex.Message}");
             }
         }
 
@@ -260,27 +340,26 @@ namespace PIInterfaceConfigUtility.Services
         }
 
         /// <summary>
-        /// Get local IP address
+        /// Get the local IP address
         /// </summary>
-        private IPAddress? GetLocalIPAddress()
+        private string? GetLocalIPAddress()
         {
             try
             {
-                var host = Dns.GetHostEntry(Dns.GetHostName());
+                var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
                 foreach (var ip in host.AddressList)
                 {
                     if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        return ip;
+                        return ip.ToString();
                     }
                 }
             }
             catch
             {
-                // Unable to get local IP
+                // Fallback to localhost
             }
-
-            return null;
+            return "127.0.0.1";
         }
 
         /// <summary>
@@ -290,6 +369,16 @@ namespace PIInterfaceConfigUtility.Services
         {
             var parts = ip.ToString().Split('.');
             return $"{parts[0]}.{parts[1]}.{parts[2]}";
+        }
+
+        /// <summary>
+        /// Log messages for debugging
+        /// </summary>
+        private void LogMessage(string message)
+        {
+            // Simple console logging - in a real application this would use proper logging
+            System.Diagnostics.Debug.WriteLine($"[RealPIServerManager] {DateTime.Now:HH:mm:ss} - {message}");
+            Console.WriteLine($"[RealPIServerManager] {DateTime.Now:HH:mm:ss} - {message}");
         }
     }
 

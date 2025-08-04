@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using PIInterfaceConfigUtility.Models;
+using System.Linq;
 
 namespace PIInterfaceConfigUtility.Dialogs
 {
@@ -40,165 +41,126 @@ namespace PIInterfaceConfigUtility.Dialogs
                 AutoStart = interfaceToEdit.AutoStart
             };
 
-            InitializeComponent();
+            InitializeComponents();
             LoadInterfaceData();
         }
 
-        private void InitializeComponent()
+        private void InitializeComponents()
         {
             Text = "Edit PI Interface";
-            Size = new System.Drawing.Size(500, 400);
+            Size = new System.Drawing.Size(500, 450);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
 
-            // Create controls
-            var nameLabel = new Label
-            {
-                Text = "Interface Name:",
-                Location = new System.Drawing.Point(12, 15),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
+            CreateControls();
+            LayoutControls();
+            SetupEventHandlers();
+        }
 
-            _nameTextBox = new TextBox
-            {
-                Location = new System.Drawing.Point(140, 12),
-                Size = new System.Drawing.Size(330, 23),
-                MaxLength = 100
-            };
+        private void CreateControls()
+        {
+            // Name
+            _nameTextBox = new TextBox();
 
-            var typeLabel = new Label
-            {
-                Text = "Interface Type:",
-                Location = new System.Drawing.Point(12, 50),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
-
+            // Type
             _typeComboBox = new ComboBox
             {
-                Location = new System.Drawing.Point(140, 47),
-                Size = new System.Drawing.Size(330, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
+            _typeComboBox.Items.AddRange(Enum.GetValues(typeof(InterfaceType)).Cast<object>().ToArray());
 
-            // Populate interface types
-            foreach (InterfaceType type in Enum.GetValues<InterfaceType>())
-            {
-                _typeComboBox.Items.Add(type);
-            }
+            // Description
+            _descriptionTextBox = new TextBox { Multiline = true };
 
-            var descriptionLabel = new Label
-            {
-                Text = "Description:",
-                Location = new System.Drawing.Point(12, 85),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
+            // Service Name
+            _serviceNameTextBox = new TextBox();
 
-            _descriptionTextBox = new TextBox
-            {
-                Location = new System.Drawing.Point(140, 82),
-                Size = new System.Drawing.Size(330, 60),
-                Multiline = true,
-                ScrollBars = ScrollBars.Vertical,
-                MaxLength = 500
-            };
+            // Config File Path
+            _configFilePathTextBox = new TextBox();
 
-            var serviceNameLabel = new Label
-            {
-                Text = "Service Name:",
-                Location = new System.Drawing.Point(12, 155),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
+            // Log File Path
+            _logFilePathTextBox = new TextBox();
 
-            _serviceNameTextBox = new TextBox
-            {
-                Location = new System.Drawing.Point(140, 152),
-                Size = new System.Drawing.Size(330, 23),
-                MaxLength = 100
-            };
+            // Enabled
+            _enabledCheckBox = new CheckBox { Text = "Enabled", Checked = true };
 
-            var configFileLabel = new Label
-            {
-                Text = "Config File Path:",
-                Location = new System.Drawing.Point(12, 190),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
+            // Auto Start
+            _autoStartCheckBox = new CheckBox { Text = "Auto Start", Checked = false };
 
-            _configFilePathTextBox = new TextBox
-            {
-                Location = new System.Drawing.Point(140, 187),
-                Size = new System.Drawing.Size(330, 23),
-                MaxLength = 260
-            };
-
-            var logFileLabel = new Label
-            {
-                Text = "Log File Path:",
-                Location = new System.Drawing.Point(12, 225),
-                Size = new System.Drawing.Size(120, 23),
-                TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            };
-
-            _logFilePathTextBox = new TextBox
-            {
-                Location = new System.Drawing.Point(140, 222),
-                Size = new System.Drawing.Size(330, 23),
-                MaxLength = 260
-            };
-
-            _enabledCheckBox = new CheckBox
-            {
-                Text = "Enabled for data collection",
-                Location = new System.Drawing.Point(140, 260),
-                Size = new System.Drawing.Size(200, 23),
-                Checked = true
-            };
-
-            _autoStartCheckBox = new CheckBox
-            {
-                Text = "Auto-start with system",
-                Location = new System.Drawing.Point(140, 290),
-                Size = new System.Drawing.Size(200, 23),
-                Checked = false
-            };
-
+            // Buttons
             _okButton = new Button
             {
-                Text = "Save Changes",
-                Location = new System.Drawing.Point(310, 330),
-                Size = new System.Drawing.Size(80, 30),
-                DialogResult = DialogResult.OK
+                Text = "OK",
+                DialogResult = DialogResult.OK,
+                Size = new System.Drawing.Size(75, 25)
             };
-            _okButton.Click += OkButton_Click;
 
             _cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new System.Drawing.Point(395, 330),
-                Size = new System.Drawing.Size(75, 30),
-                DialogResult = DialogResult.Cancel
+                DialogResult = DialogResult.Cancel,
+                Size = new System.Drawing.Size(75, 25)
             };
-
-            // Add controls to form
-            Controls.AddRange(new Control[] {
-                nameLabel, _nameTextBox,
-                typeLabel, _typeComboBox,
-                descriptionLabel, _descriptionTextBox,
-                serviceNameLabel, _serviceNameTextBox,
-                configFileLabel, _configFilePathTextBox,
-                logFileLabel, _logFilePathTextBox,
-                _enabledCheckBox, _autoStartCheckBox,
-                _okButton, _cancelButton
-            });
 
             AcceptButton = _okButton;
             CancelButton = _cancelButton;
+        }
+
+        private void LayoutControls()
+        {
+            const int margin = 20;
+            const int labelWidth = 120;
+            const int controlWidth = 300;
+            const int rowHeight = 35;
+            int currentY = margin;
+
+            // Helper method to create label and position control
+            void AddRow(string labelText, Control control, int height = 23)
+            {
+                var label = new Label
+                {
+                    Text = labelText,
+                    Location = new System.Drawing.Point(margin, currentY),
+                    Size = new System.Drawing.Size(labelWidth, 20)
+                };
+                
+                control.Location = new System.Drawing.Point(margin + labelWidth + 10, currentY);
+                control.Size = new System.Drawing.Size(controlWidth, height);
+                
+                Controls.Add(label);
+                Controls.Add(control);
+                currentY += height > 23 ? height + 15 : rowHeight;
+            }
+
+            AddRow("Name:", _nameTextBox!);
+            AddRow("Type:", _typeComboBox!);
+            AddRow("Description:", _descriptionTextBox!, 60);
+            AddRow("Service Name:", _serviceNameTextBox!);
+            AddRow("Config File Path:", _configFilePathTextBox!);
+            AddRow("Log File Path:", _logFilePathTextBox!);
+
+            // Checkboxes
+            _enabledCheckBox!.Location = new System.Drawing.Point(margin + labelWidth + 10, currentY);
+            Controls.Add(_enabledCheckBox);
+            currentY += 25;
+
+            _autoStartCheckBox!.Location = new System.Drawing.Point(margin + labelWidth + 10, currentY);
+            Controls.Add(_autoStartCheckBox);
+            currentY += 40;
+
+            // Buttons
+            _okButton!.Location = new System.Drawing.Point(controlWidth + margin - 80, currentY);
+            _cancelButton!.Location = new System.Drawing.Point(controlWidth + margin + 5, currentY);
+
+            Controls.Add(_okButton);
+            Controls.Add(_cancelButton);
+        }
+
+        private void SetupEventHandlers()
+        {
+            _okButton!.Click += OkButton_Click;
         }
 
         private void LoadInterfaceData()
