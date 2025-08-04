@@ -10,7 +10,7 @@ namespace PIInterfaceConfigUtility.Dialogs
     public partial class EditInterfaceDialog : Form
     {
         private PIInterface _interface;
-        // Make all UI controls nullable
+        // UI Controls - make all nullable
         private TextBox? _nameTextBox;
         private ComboBox? _typeComboBox;
         private TextBox? _descriptionTextBox;
@@ -203,14 +203,14 @@ namespace PIInterfaceConfigUtility.Dialogs
 
         private void LoadInterfaceData()
         {
-            _nameTextBox.Text = _interface.Name;
-            _typeComboBox.SelectedItem = _interface.Type;
-            _descriptionTextBox.Text = _interface.Description;
-            _serviceNameTextBox.Text = _interface.ServiceName;
-            _configFilePathTextBox.Text = _interface.ConfigFilePath;
-            _logFilePathTextBox.Text = _interface.LogFilePath;
-            _enabledCheckBox.Checked = _interface.IsEnabled;
-            _autoStartCheckBox.Checked = _interface.AutoStart;
+            _nameTextBox!.Text = _interface.Name;
+            _typeComboBox!.SelectedItem = _interface.Type;
+            _descriptionTextBox!.Text = _interface.Description;
+            _serviceNameTextBox!.Text = _interface.ServiceName;
+            _configFilePathTextBox!.Text = _interface.ConfigFilePath;
+            _logFilePathTextBox!.Text = _interface.LogFilePath;
+            _enabledCheckBox!.Checked = _interface.IsEnabled;
+            _autoStartCheckBox!.Checked = _interface.AutoStart;
         }
 
         private void OkButton_Click(object? sender, EventArgs e)
@@ -223,6 +223,7 @@ namespace PIInterfaceConfigUtility.Dialogs
             _interface.ConfigFilePath = _configFilePathTextBox!.Text;
             _interface.LogFilePath = _logFilePathTextBox!.Text;
             _interface.IsEnabled = _enabledCheckBox!.Checked;
+            _interface.AutoStart = _autoStartCheckBox!.Checked;
 
             DialogResult = DialogResult.OK;
             Close();

@@ -23,55 +23,31 @@ namespace PIInterfaceConfigUtility.Services
         public PIServerConnection? CurrentConnection => _currentConnection;
 
         /// <summary>
-        /// Discover real PI Servers on the network
+        /// Discover PI Servers on the network using multiple methods
         /// </summary>
-        public async Task<List<string>> DiscoverServersAsync()
+        public async Task<List<PIServerConnection>> DiscoverServersAsync()
         {
-            var servers = new List<string>();
-            
+            var discoveredServers = new List<PIServerConnection>();
+
             try
             {
-                StatusChanged?.Invoke(this, "Discovering PI Servers...");
+                // Method 1: Network scanning for port 5450
+                await ScanNetworkForPIServers(discoveredServers);
 
-                // Method 1: Check localhost first
-                if (await TestServerConnectivity("localhost"))
-                {
-                    servers.Add("localhost");
-                }
+                // Method 2: Check Windows registry for PI installations
+                CheckRegistryForPIServers(discoveredServers);
 
-                // Method 2: Try common PI Server names
-                var commonNames = new[]
-                {
-                    Environment.MachineName,
-                    $"{Environment.MachineName}-PISRV",
-                    "PI-SERVER",
-                    "PISERVER",
-                    "PI-DATA",
-                    "PIDATA"
-                };
+                // Method 3: Check common PI server names
+                await CheckCommonPIServerNames(discoveredServers);
 
-                foreach (var name in commonNames)
-                {
-                    if (await TestServerConnectivity(name) && !servers.Contains(name))
-                    {
-                        servers.Add(name);
-                    }
-                }
-
-                // Method 3: Network scan for PI Servers (port 5450 - PI API)
-                await ScanNetworkForPIServers(servers);
-
-                // Method 4: Check registry for known PI Servers
-                CheckRegistryForPIServers(servers);
-
-                StatusChanged?.Invoke(this, $"Discovery complete. Found {servers.Count} PI Server(s)");
+                LogMessage($"Discovery completed. Found {discoveredServers.Count} PI Servers.");
             }
             catch (Exception ex)
             {
-                StatusChanged?.Invoke(this, $"Discovery error: {ex.Message}");
+                LogMessage($"Error during PI Server discovery: {ex.Message}");
             }
 
-            return servers;
+            return discoveredServers;
         }
 
         /// <summary>
@@ -104,7 +80,7 @@ namespace PIInterfaceConfigUtility.Services
         /// <summary>
         /// Scan local network for PI Servers
         /// </summary>
-        private async Task ScanNetworkForPIServers(List<string> servers)
+        private async Task ScanNetworkForPIServers(List<PIServerConnection> servers)
         {
             try
             {
@@ -152,7 +128,7 @@ namespace PIInterfaceConfigUtility.Services
         /// <summary>
         /// Check Windows registry for known PI Servers
         /// </summary>
-        private void CheckRegistryForPIServers(List<string> servers)
+        private void CheckRegistryForPIServers(List<PIServerConnection> servers)
         {
             try
             {

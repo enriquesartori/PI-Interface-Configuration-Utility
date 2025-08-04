@@ -41,6 +41,7 @@ namespace PIInterfaceConfigUtility.Models
         private long _messagesReceived = 0;
         private long _messagesSent = 0;
         private int _errorCount = 0;
+        private bool _autoStart = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -212,6 +213,22 @@ namespace PIInterfaceConfigUtility.Models
                 {
                     _isEnabled = value;
                     OnPropertyChanged(nameof(IsEnabled));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the interface should start automatically with the service
+        /// </summary>
+        public bool AutoStart
+        {
+            get => _autoStart;
+            set
+            {
+                if (_autoStart != value)
+                {
+                    _autoStart = value;
+                    OnPropertyChanged(nameof(AutoStart));
                 }
             }
         }

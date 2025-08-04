@@ -211,7 +211,7 @@ namespace PIInterfaceConfigUtility.Services
                         {
                             Name = interfaceNode.Attributes?["Name"]?.Value ?? "",
                             Description = interfaceNode.Attributes?["Description"]?.Value ?? "",
-                            Type = Enum.TryParse<InterfaceType>(interfaceNode.Attributes?["Type"]?.Value, out var type) ? type : InterfaceType.OPC_DA
+                            Type = Enum.TryParse<InterfaceType>(interfaceNode.Attributes?["Type"]?.Value, out var type) ? type : InterfaceType.OPCDA
                         };
                         
                         currentConfiguration.Interfaces.Add(piInterface);
